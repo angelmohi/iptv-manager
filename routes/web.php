@@ -22,6 +22,7 @@ Auth::routes(['register' => false, 'reset' => false]);
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::prefix('token')->controller(TokenController::class)->group(function() {
+    Route::get('/edit', 'edit')->name('tokens.edit');
     Route::post('/', 'store')->name('tokens.store');
 });
 

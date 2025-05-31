@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
+use Carbon\Carbon;
+use Illuminate\View\View;
 
 class TokenController extends Controller
 {
@@ -16,6 +18,22 @@ class TokenController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+    }
+
+    /**
+     * Show the form for editing the token.
+     */
+    public function edit() : View
+    {
+        $cdnToken = null;
+        $expiredDate = null;
+        if (Storage::disk('local')->exists('cdn_token.txt')) {
+            $cdnToken = trim(Storage::disk('local')->get('cdn_token.txt'));
+            $timestamp = Storage::disk('local')->lastModified('cdn_token.txt');
+            $expiredDate = Carbon::createFromTimestamp($timestamp)->addDay()->format('d/m/Y H:i:s');
+        }
+
+        return view('tokens.edit', compact('cdnToken', 'expiredDate'));
     }
 
     /**

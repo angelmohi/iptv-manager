@@ -19,7 +19,6 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/coreui/coreui.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/simplebar/simplebar.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/sweetalert-7.0.5/sweetalert2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/styles.css') }}">
     <link href="{{ asset('assets/vendor/datatables-1.13.1/css/dataTables.bootstrap5.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/vendor/select2-4.1.0/css/select2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/vendor/select2-4.1.0/css/select2-bootstrap-5-theme.min.css') }}" rel="stylesheet">
@@ -28,6 +27,13 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/7.6.1/tinymce.min.js" integrity="sha512-bib7srucEhHYYWglYvGY+EQb0JAAW0qSOXpkPTMgCgW8eLtswHA/K4TKyD4+FiXcRHcy8z7boYxk0HTACCTFMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- UAParser.js para parsear User-Agent en el cliente -->
+    <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.35/dist/ua-parser.min.js"></script>
+    
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
 <body>
@@ -65,6 +71,9 @@
                         @else
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('lists.edit') }}">{{ __('Listas') }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('tokens.edit') }}">{{ __('Token') }}</a>
                             </li>
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
