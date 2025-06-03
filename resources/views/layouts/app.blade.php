@@ -70,6 +70,12 @@
                             @endif
                         @else
                             <li class="nav-item">
+                                <a class="nav-link" href="{{ route('channel-categories.index') }}">{{ __('Categorías') }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('channels.index') }}">{{ __('Canales') }}</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" href="{{ route('lists.edit') }}">{{ __('Listas') }}</a>
                             </li>
                             <li class="nav-item">

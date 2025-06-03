@@ -19,12 +19,12 @@
                         <div class="card-header">{{ __('Lista para Tivimate') }}</div>
     
                         <div class="card-body">
-                            <form id="tivimateForm" method="POST" action="{{ route('lists.update') }}">
-                                <input type="file" name="tivimate_list" id="tivimateList" class="form-control mb-3" accept=".m3u">
-                                <button type="submit" class="btn btn-primary ml-4" data-loading-text="Actualizando...">Actualizar</button>
+                            <p>Enlace de la lista: <br><strong>{{ route('lists.download.tivimate') }}</strong></p>
+
+                            <form id="tivimateForm" class="mt-4" method="POST" action="{{ route('lists.update') }}">
+                                <button type="submit" name="action" value="tivimate" class="btn btn-primary ml-4" data-loading-text="Actualizando...">Actualizar</button>
                                 <a href="{{ route('lists.download.tivimate') }}" target="_blank" class="btn btn-primary ms-3">Descargar</a>
                             </form>
-                            <p class="mt-4">Enlace de la lista: <br><strong>{{ route('lists.download.tivimate') }}</strong></p>
                         </div>
                     </div>
                 </div>
@@ -33,12 +33,12 @@
                         <div class="card-header">{{ __('Lista para OTT') }}</div>
 
                         <div class="card-body">
-                            <form id="ottForm" method="POST" action="{{ route('lists.update') }}">
-                                <input type="file" name="ott_list" id="ottList" class="form-control mb-3" accept=".m3u">
-                                <button type="submit" class="btn btn-primary" data-loading-text="Actualizando...">Actualizar</button>
+                            <p>Enlace de la lista: <br><strong>{{ route('lists.download.ott') }}</strong></p>
+
+                            <form id="ottForm" class="mt-4" method="POST" action="{{ route('lists.update') }}">
+                                <button type="submit"  name="action" value="ott" class="btn btn-primary" data-loading-text="Actualizando...">Actualizar</button>
                                 <a href="{{ route('lists.download.ott') }}" target="_blank" class="btn btn-primary ms-3">Descargar</a>
                             </form>
-                            <p class="mt-4">Enlace de la lista: <br><strong>{{ route('lists.download.ott') }}</strong></p>
                         </div>
                     </div>
                 </div>
