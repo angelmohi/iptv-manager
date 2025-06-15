@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\General;
+use App\Models\Account;
 use App\Models\Channel;
 use App\Models\DownloadLog;
 use Illuminate\Support\Facades\Http;
@@ -25,34 +27,31 @@ class ListController extends Controller
     }
 
     /**
-     * Show the form for editing the lists.
-     */
-    public function edit() : View
-    {
-        return view('lists.edit');
-    }
-
-    /**
      * Update the lists.
      */
-    public function update(Request $request) : JsonResponse
+    public function update() : JsonResponse
     {
-        $cdnToken = '';
-        if (Storage::disk('local')->exists('cdn_token.txt')) {
-            $cdnToken = trim(Storage::disk('local')->get('cdn_token.txt'));
-        }
-        $channels = Channel::with('category')
-            ->where('is_active', true)
-            ->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
-            ->orderBy('channel_categories.order', 'asc')
-            ->orderBy('channels.order', 'asc')
-            ->select('channels.*')
-            ->get();
+        $accounts = Account::all();
 
-        $lines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_US1.xml.gz"'];
+        foreach ($accounts as $account) {
+            $cdnToken = $account->token ?? '';
 
-        $lines[] = '';
-        if ($request->action == "ott") {
+            $folder = General::codeFromString($account->username, $account);
+            if (! Storage::disk('local')->exists($folder) ) {
+                Storage::disk('local')->makeDirectory($folder);
+            }
+
+            $channels = Channel::with('category')
+                ->where('is_active', true)
+                ->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
+                ->orderBy('channel_categories.order', 'asc')
+                ->orderBy('channels.order', 'asc')
+                ->select('channels.*')
+                ->get();
+
+            $ottLines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_US1.xml.gz"'];
+
+            $ottLines[] = '';
             foreach ($channels as $channel) {
                 $extinf = '#EXTINF:-1';
 
@@ -80,36 +79,37 @@ class ListController extends Controller
 
                 $extinf .= ',' . $channel->name;
 
-                $lines[] = $extinf;
+                $ottLines[] = $extinf;
 
                 if (!empty($channel->user_agent)) {
-                    $lines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+                    $ottLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
                 }
                 if (!empty($channel->manifest_type)) {
-                    $lines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+                    $ottLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
                 }
                 if (!empty($channel->license_type)) {
-                    $lines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+                    $ottLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
                 }
                 if (!empty($channel->api_key)) {
-                    $lines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $channel->api_key;
+                    $ottLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $channel->api_key;
                 }
                 if ($channel->apply_token) {
-                    $lines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+                    $ottLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
                 }
                 if (!empty($channel->url_channel)) {
-                    $lines[] = $channel->url_channel;
+                    $ottLines[] = $channel->url_channel;
                 }
-                $lines[] = '';
+                $ottLines[] = '';
             }
 
-            $content = implode("\n", $lines);
+            $content = implode("\n", $ottLines);
 
             $filename = 'total_ott.m3u';
-            Storage::disk('local')->put($filename, $content);
-        }
+            Storage::disk('local')->put("{$folder}/{$filename}", $content);
 
-        if ($request->action == "tivimate") {
+            $tivimateLines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_US1.xml.gz"'];
+            
+            $tivimateLines[] = '';
             foreach ($channels as $channel) {
                 $extinf = '#EXTINF:-1';
 
@@ -139,47 +139,49 @@ class ListController extends Controller
 
                 $extinf .= ',' . $channel->name;
 
-                $lines[] = $extinf;
+                $tivimateLines[] = $extinf;
 
                 if (!empty($channel->user_agent)) {
-                    $lines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+                    $tivimateLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
                 }
                 if (!empty($channel->manifest_type)) {
-                    $lines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+                    $tivimateLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
                 }
                 if (!empty($channel->license_type)) {
-                    $lines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+                    $tivimateLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
                 }
                 if (!empty($channel->api_key)) {
-                    $lines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $channel->api_key;
+                    $tivimateLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $channel->api_key;
                 }
                 if ($channel->apply_token) {
-                    $lines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+                    $tivimateLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
                 }
-                if (!empty($channel->url_channel)) {
-                    $lines[] = $channel->url_channel . '|X-TCDN-token=' . $cdnToken;
+                if (!empty($channel->url_channel) && $channel->apply_token) {
+                    $tivimateLines[] = $channel->url_channel . '|X-TCDN-token=' . $cdnToken;
+                } else if (!empty($channel->url_channel)) {
+                    $tivimateLines[] = $channel->url_channel;
                 }
-                $lines[] = '';
+                $tivimateLines[] = '';
             }
 
-            $content = implode("\n", $lines);
+            $content = implode("\n", $tivimateLines);
 
             $filename = 'total.m3u';
-            Storage::disk('local')->put($filename, $content);
+            Storage::disk('local')->put("{$folder}/{$filename}", $content);
         }
 
-        flashSuccessMessage('Lista actualizada correctamente.');
-        return jsonIframeRedirection(route('lists.edit'));
+        flashSuccessMessage('Listas actualizadas correctamente.');
+        return jsonIframeRedirection(route('channels.index'));
     }
 
     /**
      * Download the total.m3u file.
      */
-    public function downloadTivimate(): StreamedResponse
+    public function downloadTivimate(string $folder): StreamedResponse
     {
         $filePath = 'total.m3u';
 
-        if (!Storage::exists($filePath)) {
+        if (!Storage::exists("{$folder}/{$filePath}")) {
             abort(404, 'El archivo total.m3u no se encontró.');
         }
 
@@ -218,7 +220,7 @@ class ListController extends Controller
             'user_agent' => request()->userAgent(),
         ]);
 
-        $fileContent = Storage::get($filePath);
+        $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'total.m3u';
         $mimeType = 'audio/x-mpegurl';
 
@@ -235,11 +237,11 @@ class ListController extends Controller
     /**
      * Download the total_ott.m3u file.
      */
-    public function downloadOtt(): StreamedResponse
+    public function downloadOtt(string $folder): StreamedResponse
     {
         $filePath = 'total_ott.m3u';
 
-        if (!Storage::exists($filePath)) {
+        if (!Storage::exists("{$folder}/{$filePath}")) {
             abort(404, 'El archivo total_ott.m3u no se encontró.');
         }
 
@@ -278,7 +280,7 @@ class ListController extends Controller
             'user_agent' => request()->userAgent(),
         ]);
 
-        $fileContent = Storage::get($filePath);
+        $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'total_ott.m3u';
         $mimeType = 'audio/x-mpegurl';
 

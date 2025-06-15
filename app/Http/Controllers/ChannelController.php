@@ -25,7 +25,7 @@ class ChannelController extends Controller
      */
     public function index() : View
     {
-        $channels = Channel::orderBy('order')->get();
+        $channels = Channel::all();
         return view('channels.index', compact('channels'));
     }
 
@@ -65,16 +65,16 @@ class ChannelController extends Controller
             'catchup' => 'nullable',
             'catchup_days' => 'nullable',
             'catchup_source' => 'nullable',
-            'order' => 'required|integer',
             'is_active' => 'required|boolean',
             'apply_token' => 'required|boolean',
         ]);
+
+        $data['order'] = Channel::max('order') + 1;
 
         $channel = Channel::create($data);
 
         flashSuccessMessage('Canal creado correctamente.');
         return jsonIframeRedirection(route('channels.edit', $channel->id));
-        
     }
 
     /**
@@ -95,7 +95,6 @@ class ChannelController extends Controller
             'catchup' => 'nullable',
             'catchup_days' => 'nullable',
             'catchup_source' => 'nullable',
-            'order' => 'required|integer',
             'is_active' => 'required|boolean',
             'apply_token' => 'required|boolean',
         ]);
@@ -104,6 +103,38 @@ class ChannelController extends Controller
 
         flashSuccessMessage('Canal actualizado correctamente.');
         return jsonIframeRedirection(route('channels.edit', $channel->id));
+    }
+
+    /**
+     * Reorder channels.
+     */
+    public function reorder(Request $request) : JsonResponse
+    {
+        $data = $request->validate([
+            'order'         => 'required|array',
+            'order.*.id'    => 'required|integer|exists:channels,id',
+            'order.*.order' => 'required|integer|min:1',
+        ]);
+
+        foreach ($data['order'] as $item) {
+            Channel::where('id', $item['id'])
+                   ->update(['order' => $item['order']]);
+        }
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * Duplicate the specified channel.
+     */
+    public function duplicate(Channel $channel) : JsonResponse
+    {
+        $newChannel = $channel->replicate();
+        $newChannel->name .= ' (Copia)';
+        $newChannel->save();
+
+        flashSuccessMessage('Canal duplicado correctamente.');
+        return jsonIframeRedirection(route('channels.edit', $newChannel->id));
     }
 
     /**

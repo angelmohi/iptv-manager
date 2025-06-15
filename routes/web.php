@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\ChannelCategoryController;
 use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\HomeController;
@@ -23,16 +24,19 @@ Auth::routes(['register' => false, 'reset' => false]);
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::prefix('token')->controller(TokenController::class)->group(function() {
-    Route::get('/edit', 'edit')->name('tokens.edit');
-    Route::post('/', 'store')->name('tokens.store');
+Route::prefix('accounts')->controller(AccountController::class)->group(function() {
+    Route::get('/', 'index')->name('accounts.index');
+    Route::get('/create', 'create')->name('accounts.create');
+    Route::get('/edit/{account}', 'edit')->name('accounts.edit');
+    Route::post('/', 'store')->name('accounts.store');
+    Route::put('/{account}', 'update')->name('accounts.update');
+    Route::post('/generate-token/{account}', 'generateToken')->name('accounts.generate-token');
 });
 
 Route::prefix('lists')->controller(ListController::class)->group(function() {
-    Route::get('/edit', 'edit')->name('lists.edit');
     Route::post('/update', 'update')->name('lists.update');
-    Route::get('/tivimate', 'downloadTivimate')->name('lists.download.tivimate');
-    Route::get('/ott', 'downloadOtt')->name('lists.download.ott');
+    Route::get('/tivimate/{folder}', 'downloadTivimate')->name('lists.download.tivimate');
+    Route::get('/ott/{folder}', 'downloadOtt')->name('lists.download.ott');
 });
 
 Route::prefix('channel-categories')->controller(ChannelCategoryController::class)->group(function() {
@@ -42,6 +46,7 @@ Route::prefix('channel-categories')->controller(ChannelCategoryController::class
     Route::post('/', 'store')->name('channel-categories.store');
     Route::put('/{category}', 'update')->name('channel-categories.update');
     Route::delete('/{category}', 'destroy')->name('channel-categories.destroy');
+    Route::post('/reorder', 'reorder')->name('channel-categories.reorder');
 });
 
 Route::prefix('channels')->controller(ChannelController::class)->group(function() {
@@ -51,4 +56,6 @@ Route::prefix('channels')->controller(ChannelController::class)->group(function(
     Route::post('/', 'store')->name('channels.store');
     Route::put('/{channel}', 'update')->name('channels.update');
     Route::delete('/{channel}', 'destroy')->name('channels.destroy');
+    Route::post('/reorder', 'reorder')->name('channels.reorder');
+    Route::post('/duplicate/{channel}', 'duplicate')->name('channels.duplicate');
 });

@@ -72,10 +72,6 @@
 
             <div class="row mt-3">
                 <div class="col-12 col-sm-12 col-md-4 form-group">
-                    <label for="f-order">Posición</label>
-                    <input type="text" class="form-control" id="f-order" name="order" value="{{ $channel->order ?? '' }}">
-                </div>
-                <div class="col-12 col-sm-12 col-md-4 form-group">
                     <label for="f-is_active">Activo</label>
                     <select class="form-control" id="f-is_active" name="is_active">
                         <option value="1" {{ (isset($channel) && $channel->is_active) ? 'selected' : '' }}>Sí</option>

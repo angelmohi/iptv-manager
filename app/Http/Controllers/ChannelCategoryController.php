@@ -51,8 +51,9 @@ class ChannelCategoryController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'order' => 'required|integer',
         ]);
+
+        $data['order'] = ChannelCategory::max('order') + 1;
 
         $category = ChannelCategory::create($data);
 
@@ -68,7 +69,6 @@ class ChannelCategoryController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'order' => 'required|integer',
         ]);
 
         $category->update($data);
@@ -91,5 +91,24 @@ class ChannelCategoryController extends Controller
 
         flashSuccessMessage('Categoría eliminada correctamente.');
         return jsonIframeRedirection(route('channel-categories.index'));
+    }
+
+    /**
+     * Reorder categories.
+     */
+    public function reorder(Request $request) : JsonResponse
+    {
+        $data = $request->validate([
+            'order' => 'required|array',
+            'order.*.id' => 'required|integer|exists:channel_categories,id',
+            'order.*.order' => 'required|integer|min:1',
+        ]);
+
+        foreach ($data['order'] as $item) {
+            ChannelCategory::where('id', $item['id'])
+                ->update(['order' => $item['order']]);
+        }
+
+        return response()->json(['status' => 'ok']);
     }
 }

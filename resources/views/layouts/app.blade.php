@@ -76,10 +76,7 @@
                                 <a class="nav-link" href="{{ route('channels.index') }}">{{ __('Canales') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('lists.edit') }}">{{ __('Listas') }}</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('tokens.edit') }}">{{ __('Token') }}</a>
+                                <a class="nav-link" href="{{ route('accounts.index') }}">{{ __('Cuentas') }}</a>
                             </li>
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
@@ -124,6 +121,7 @@
     <script type="text/javascript" src="{{ asset('assets/vendor/tempus-dominus/js/popper.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('assets/vendor/tempus-dominus/js/tempus-dominus.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('assets/vendor/full-calendar-6.1.9/index.global.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     @stack('scripts')
 </body>
 </html>

@@ -26,6 +26,7 @@ class Channel extends Model
         'catchup_source',
         'order',
         'is_active',
+        'apply_token',
     ];
 
     public $timestamps = true;
