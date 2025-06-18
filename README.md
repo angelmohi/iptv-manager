@@ -1,5 +1,7 @@
 # IPTV Manager
 
+![banner](./public/assets/img/hero.png)
+
 ## 📺 Descripción
 
 IPTV Manager es una aplicación construida sobre Laravel que permite gestionar canales de televisión por IP. Con ella puedes importar canales y categorías desde archivos M3U, organizarlos, y generar listas de reproducción en formato **M3U** tanto desde la interfaz web como a través de comandos Artisan.
