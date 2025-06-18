@@ -1,51 +1,49 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container py-4">
-    <div class="row justify-content-center p-4">
-        <div class="col-md-12">
-            @if (session()->has('message'))
-            <div class="row">
-                <div class="col-12">
-                    <div class="alert alert-{{ session('message')->type }}" role="alert">
-                        {{ session('message')->text }}
-                    </div>
-                </div>
-            </div>
-            @endif
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header">{{ __('Cuentas') }}</div>
 
-                        <div class="card-body">
-                            <a href="{{ route('accounts.create') }}" class="btn btn-primary mb-3">Añadir Cuenta</a>
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Usuario</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($accounts as $account)
-                                    <tr>
-                                        <td>{{ $account->username }}</td>
-                                        <td>
-                                            <a href="{{ route('accounts.edit', $account->id) }}"
-                                                class="btn btn-warning btn-sm" style="margin-right: 10px;">
-                                                Editar
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+<div class="card mb-4">
+    <div class="card-body m-2">
+        <div class="d-flex justify-content-between">
+            <div>
+                <h4 class="card-title align-middle d-inline pt-2">Cuentas</h4>
+            </div>
+            <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with buttons">
+                <a class="btn btn-outline-primary" type="button" href="{{ route('accounts.create') }}">
+                    <i class="fas fa-plus mr-2"></i> Crear cuenta
+                </a>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="table-responsive">
+                    <table class="table table-striped" style="cursor: pointer;">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Fecha de expiración del token</th>
+                                <th>Fecha de creación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($accounts as $account)
+                            <tr data-href="{{ route('accounts.edit', $account->id) }}">
+                                <td>{{ $account->username }}</td>
+                                <td>
+                                    @if ($account->token_expires_at)
+                                        {{ $account->token_expires_at->format('d/m/Y H:i') }}
+                                    @else
+                                        <span class="text-muted">No hay token disponible</span>
+                                    @endif
+                                </td>
+                                <td>{{ $account->created_at->format('d/m/Y H:i') }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            
         </div>
     </div>
 </div>

@@ -84,7 +84,7 @@ class ChannelCategoryController extends Controller
     {
         if ($category->channels()->count() > 0) {
             flashDangerMessage('No se puede eliminar la categoría porque tiene canales asociados.');
-            return jsonIframeRedirection(route('channel-categories.index'));
+            return jsonIframeRedirection(route('channel-categories.edit', $category->id));
         }
         
         $category->delete();

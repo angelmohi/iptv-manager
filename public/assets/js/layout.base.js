@@ -108,7 +108,7 @@ CommonFunctions.validation = function($form, validationErrors) {
 CommonFunctions.notificationConfirmDelete = function(text, buttonText, url, params, callback) {
     swal({
         type: 'warning',
-        title: 'Attention',
+        title: 'Atención',
         text: text,
         allowEscapeKey: false,
         allowOutsideClick: false,
@@ -116,7 +116,7 @@ CommonFunctions.notificationConfirmDelete = function(text, buttonText, url, para
         showCancelButton: true,
         confirmButtonColor: '#d33',
         confirmButtonText: buttonText,
-        cancelButtonText: 'Cancel',
+        cancelButtonText: 'Cancelar',
         showLoaderOnConfirm: true,
         preConfirm: function() {
             return new Promise(function(resolve) {
@@ -144,7 +144,7 @@ CommonFunctions.notificationConfirmDelete = function(text, buttonText, url, para
 CommonFunctions.notificationConfirmPut = function(text, buttonText, url, confirmButtonColor = '#d33', params, callback) {
     swal({
         type: 'warning',
-        title: 'Attention',
+        title: 'Atención',
         text: text,
         allowEscapeKey: false,
         allowOutsideClick: false,
@@ -177,16 +177,16 @@ CommonFunctions.notificationConfirmPut = function(text, buttonText, url, confirm
     });
 };
 
-CommonFunctions.notificationConfirmPost = function(text, buttonText, url, params, callback) {
+CommonFunctions.notificationConfirmPost = function(text, buttonText, url, confirmButtonColor = '#d33', params, callback) {
     swal({
         type: 'warning',
-        title: 'Attention',
+        title: 'Atención',
         text: text,
         allowEscapeKey: false,
         allowOutsideClick: false,
         allowEnterKey: false,
         showCancelButton: true,
-        confirmButtonColor: '#d33',
+        confirmButtonColor: confirmButtonColor,
         confirmButtonText: buttonText,
         cancelButtonText: 'Cancel',
         showLoaderOnConfirm: true,
@@ -880,12 +880,6 @@ $(document).ready(function() {
             pageLength: 10,
             bLengthChange: true,
             autoWidth: false,
-            aoColumnDefs: [
-                {
-                    'type': 'num',
-                    'aTargets': [1, 2, 3, 4]
-                }
-            ]
         };
 
         // If table have class no-paginate then disable pagination

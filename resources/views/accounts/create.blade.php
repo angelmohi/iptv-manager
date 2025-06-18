@@ -1,29 +1,23 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container py-4">
-    <div class="row justify-content-center p-4">
-        <div class="col-md-12">
-            @if (session()->has('message'))
-            <div class="row">
-                <div class="col-12">
-                    <div class="alert alert-{{ session('message')->type }}" role="alert">
-                        {{ session('message')->text }}
-                    </div>
-                </div>
-            </div>
-            @endif
-
-            <div class="row">
-                <div class="col-md-12">
-                    <a href="{{ route('accounts.index') }}" class="btn btn-secondary mb-3">Volver a la lista</a>
-                </div>
+<div class="card mb-4">
+    <div class="card-body m-2">
+        <div class="d-flex justify-content-between">
+            <div>
+                <h4 class="card-title align-middle d-inline pt-2">Crear cuenta</h4>
             </div>
 
-            <form method="POST" action="{{ route('accounts.store') }}" class="row">
-                @include('accounts._form', ['editing' => false])
-            </form>
+            <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with buttons">
+                <a class="btn btn-outline-secondary" type="button" href="{{ route('accounts.index') }}" >
+                    <i class="fas fa-chevron-left mr-2"></i> Volver
+                </a>
+            </div>
         </div>
+        <hr>
+        <form method="POST" action="{{ route('accounts.store') }}">
+            @include('accounts._form', ['editing' => false])
+        </form>
     </div>
 </div>
 @endsection

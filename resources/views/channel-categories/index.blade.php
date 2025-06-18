@@ -1,59 +1,49 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container py-4">
-  <div class="row justify-content-center p-4">
-    <div class="col-md-12">
-      @if (session()->has('message'))
-        <div class="alert alert-{{ session('message')->type }}">
-          {{ session('message')->text }}
+
+<div class="card mb-4">
+    <div class="card-body m-2">
+        <div class="d-flex justify-content-between">
+            <div>
+                <h4 class="card-title align-middle d-inline pt-2">Categorías de Canales</h4>
+            </div>
+            <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with buttons">
+                <a class="btn btn-outline-primary" type="button" href="{{ route('channel-categories.create') }}">
+                    <i class="fas fa-plus mr-2"></i> Crear categoría
+                </a>
+            </div>
         </div>
-      @endif
+        <hr>
+        <div class="row">
+            <div class="col-sm-12">
+                <ul id="categories-list" class="list-group mt-3">
+                    @foreach($categories as $category)
+                      <li class="list-group-item d-flex justify-content-between align-items-center"
+                          data-id="{{ $category->id }}">
+                        
+                        <span>
+                          {{ $category->name }}
+                          <a href="{{ route('channel-categories.edit', $category->id) }}" class="text-decoration-none text-primary ms-1"
+                             title="Editar categoría">
+                            <i class="fas fa-edit"></i>
+                          </a>
+                        </span>
 
-      <div class="card">
-        <div class="card-header">{{ __('Categorías de Canales') }}</div>
-        <div class="card-body">
-          <a href="{{ route('channel-categories.create') }}"
-             class="btn btn-primary mb-3">Añadir Categoría</a>
-
-          <ul id="categories-list" class="list-group">
-            @foreach($categories as $category)
-              <li class="list-group-item d-flex justify-content-between align-items-center"
-                  data-id="{{ $category->id }}">
+                        <div class="d-flex align-items-center">
+                          <span class="handle" 
+                                style="font-size: 1.2rem; cursor: move;"
+                                title="Arrastra para reordenar">
+                            &#x2630;
+                          </span>
+                        </div>
+                      </li>
+                    @endforeach
+                </ul>
                 
-                <span>{{ $category->name }}</span>
-
-                <div class="d-flex align-items-center">
-                  <a href="{{ route('channel-categories.edit', $category->id) }}"
-                     class="btn btn-warning btn-sm me-2">
-                    Editar
-                  </a>
-
-                  <form action="{{ route('channel-categories.destroy', $category->id) }}"
-                        method="POST"
-                        class="d-inline me-3">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                            class="btn btn-danger btn-sm"
-                            onclick="return confirm('¿Estás seguro de que deseas eliminar esta categoría?');">
-                      Eliminar
-                    </button>
-                  </form>
-
-                  <span class="handle" 
-                        style="font-size: 1.2rem; cursor: move;"
-                        title="Arrastra para reordenar">
-                    &#x2630;
-                  </span>
-                </div>
-              </li>
-            @endforeach
-          </ul>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 </div>
 @endsection
 

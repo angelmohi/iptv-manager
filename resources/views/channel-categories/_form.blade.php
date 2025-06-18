@@ -1,17 +1,12 @@
-<div class="col-lg col-md-12">
-    <div class="card">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-12 col-sm-12 col-md-6 form-group">
-                    <label for="f-name">Nombre</label>
-                    <input type="text" class="form-control" id="f-name" name="name" value="{{ $category->name ?? '' }}">
-                </div>
-            </div>
-            <div class="row mt-3">
-                <div class="col-12 col-sm-12 col-md-6 form-group">
-                    <button type="submit" class="btn btn-success btn-block" name="action" value="save" data-loading-text="Guardando">Guardar</button>
-                </div>
-            </div>
-        </div>
+<div class="row g-4">
+    <div class="col-md-6">
+        <label for="f-name">Nombre</label>
+        <input type="text" class="form-control" id="f-name" name="name" value="{{ $category->name ?? '' }}">
+    </div>
+    <div class="col-md-12">
+        <button type="submit" class="btn btn-outline-primary me-3">Guardar</button>
+        @if ($editing)
+            <a href="#" id="delete-category" class="btn btn-outline-danger">Eliminar</a>
+        @endif
     </div>
 </div>
