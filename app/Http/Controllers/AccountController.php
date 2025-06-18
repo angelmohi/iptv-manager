@@ -76,7 +76,8 @@ class AccountController extends Controller
     {
         try {
             Token::refreshCdnToken($account);
-            Lists::generate($account);
+            Lists::generateTivimateList($account);
+            Lists::generateOttList($account);
         } catch (TokenException $e) {
             Log::error($e);
             flashDangerMessage($e->getMessage());

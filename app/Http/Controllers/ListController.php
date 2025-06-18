@@ -30,7 +30,8 @@ class ListController extends Controller
     {
         $accounts = Account::all();
         foreach ($accounts as $account) {
-            Lists::generate($account);
+            Lists::generateTivimateList($account);
+            Lists::generateOttList($account);
         }
 
         flashSuccessMessage('Listas actualizadas correctamente.');

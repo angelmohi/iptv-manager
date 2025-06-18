@@ -22,7 +22,8 @@ class GetCdnToken extends Command
             try {
                 $result = Token::refreshCdnToken($account);
                 Log::info("CDN Token obtenido: {$result['cdnToken']}");
-                Lists::generate($account);
+                Lists::generateTivimateList($account);
+                Lists::generateOttList($account);
                 Log::info('CDN Token obtenido y reemplazado correctamente en los archivos.');
             } catch (TokenException $e) {
                 $this->error($e->getMessage());
