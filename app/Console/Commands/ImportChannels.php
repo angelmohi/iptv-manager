@@ -5,20 +5,19 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Channel;
 use App\Models\ChannelCategory;
-use Illuminate\Support\Facades\DB;
 
 class ImportChannels extends Command
 {
     /**
-     * El nombre y firma del comando.
-     * Tomará siempre storage/app/total_ott.m3u sin parámetros.
+     * The name and signature of the Artisan command.
+     * Always uses storage/app/total_ott.m3u without parameters.
      */
     protected $signature = 'import:channels';
 
     /**
-     * La descripción del comando.
+     * The command description.
      */
-    protected $description = 'Importa todos los canales desde storage/app/total_ott.m3u, saltando los comentados (##...) y líneas no válidas.';
+    protected $description = 'Import all channels from storage/app/total_ott.m3u, skipping commented (##...) and invalid lines.';
 
     public function __construct()
     {
@@ -27,25 +26,25 @@ class ImportChannels extends Command
 
     public function handle()
     {
-        // 1. Ruta fija al fichero dentro de storage/app
+        // 1. Fixed file path inside storage/app
         $filePath = storage_path('app/total_ott.m3u');
 
-        // 2. Verificamos que exista y sea legible
-        if (!is_readable($filePath)) {
-            $this->error("No se puede leer el archivo: {$filePath}");
+        // 2. Check that the file exists and is readable
+        if (! is_readable($filePath)) {
+            $this->error("Unable to read file: {$filePath}");
             return 1;
         }
 
-        $this->info("Iniciando importación de canales desde: {$filePath}");
+        $this->info("Starting channel import from: {$filePath}");
 
-        // 3. Abrimos el fichero para recorrerlo línea a línea
+        // 3. Open the file for line-by-line processing
         $handle = fopen($filePath, 'r');
-        if (!$handle) {
-            $this->error("Error al abrir el archivo: {$filePath}");
+        if (! $handle) {
+            $this->error("Error opening file: {$filePath}");
             return 1;
         }
 
-        // 4. Variables temporales para construir cada canal
+        // 4. Temporary variables to build each channel
         $current = [
             'tvg_id'        => null,
             'name'          => null,
@@ -61,65 +60,51 @@ class ImportChannels extends Command
             'url_channel'   => null,
         ];
 
-        // 5. Contador de canales procesados exitosamente
-        $contadorCanales = 0;
+        // 5. Counter for successfully processed channels
+        $channelCount = 0;
 
-        // 6. Para asignar un orden incremental si quisieras
+        // 6. Incremental order counter if needed
         $orderCounter = 1;
 
-        // 7. Recorremos cada línea del fichero
-        while (!feof($handle)) {
+        // 7. Iterate through each line of the file
+        while (! feof($handle)) {
             $line = fgets($handle);
             if ($line === false) {
                 continue;
             }
 
-            // Quitamos espacios a los lados
+            // Trim whitespace
             $trimmed = trim($line);
 
-            // 7.1. Si la línea está vacía, saltamos
+            // 7.1. Skip empty lines
             if ($trimmed === '') {
                 continue;
             }
 
-            // 7.2. Si la línea empieza por "##", está comentada => la ignoramos
+            // 7.2. Skip lines starting with "##" (commented)
             if (substr($trimmed, 0, 2) === '##') {
                 continue;
             }
 
-            // 7.3. Si la línea empieza por "<", por ejemplo "<###### Movistar Futbol######>", la ignoramos
+            // 7.3. Skip lines starting with "<" (e.g., <###### Movistar Futbol######>)
             if (substr($trimmed, 0, 1) === '<') {
                 continue;
             }
 
-            // 7.4. Si la línea es un bloque "#EXTINF:" (solo un # delante), procesamos el inicio de un canal
+            // 7.4. Process an #EXTINF: block (single #) for channel metadata
             if (stripos($trimmed, '#EXTINF:') === 0) {
-                // 7.4.1. Al iniciar un nuevo EXTINF, reiniciamos $current
-                $current = [
-                    'tvg_id'        => null,
-                    'name'          => null,
-                    'group_title'   => null,
-                    'logo'          => null,
-                    'catchup'       => null,
-                    'catchup_days'  => null,
-                    'catchup_source'=> null,
-                    'user_agent'    => null,
-                    'manifest_type' => null,
-                    'license_type'  => null,
-                    'api_key'       => null,
-                    'url_channel'   => null,
-                ];
+                // 7.4.1. Reset $current for a new channel
+                $current = array_fill_keys(array_keys($current), null);
 
-                // 7.4.2. Extraemos todos los atributos clave="valor" de la misma línea EXTINF
-                //     Usamos ([\w-]+) para que acepte guiones en la clave.
-                //     Ejemplo de línea EXTINF:
-                //     #EXTINF:-1 tvg-id="TV3" tvg-name="TV3" group-title="Movistar Autonomicas"
-                //               catchup="default" catchup-days="30" catchup-source="https://...mpd" tvg-logo="...png", TV3
+                // 7.4.2. Extract key="value" attributes from the EXTINF line
+                //     Use ([\w-]+) to allow hyphens in keys.
+                // Example EXTINF line:
+                // #EXTINF:-1 tvg-id="TV3" tvg-name="TV3" group-title="Movistar Autonomicas"
+                //           catchup="default" catchup-days="30" catchup-source="https://...mpd" tvg-logo="...png", TV3
                 preg_match_all('/([\w-]+)="([^"]*)"/i', $trimmed, $matches, PREG_SET_ORDER);
 
                 foreach ($matches as $m) {
-                    // $m[1] contiene la clave (por ejemplo "tvg-id", "group-title", "catchup-days", etc.)
-                    // $m[2] contiene el valor (por ejemplo "TV3", "Movistar Autonomicas", "30", etc.)
+                    // $m[1] is the key, $m[2] is the value
                     $key = strtolower($m[1]);
                     $val = trim($m[2]);
 
@@ -145,11 +130,11 @@ class ImportChannels extends Command
                         case 'catchup-source':
                             $current['catchup_source'] = $val;
                             break;
-                        // Si hubiera más campos que extraer de EXTINF, añadir aquí
+                        // Add more EXTINF fields here if needed
                     }
                 }
 
-                // 7.4.3. Obtener el "nombre humano" después de la coma, si no vino tvg-name
+                // 7.4.3. If tvg-name was missing, take the human-readable name after the comma
                 if (stripos($trimmed, ',') !== false) {
                     $afterComma = substr($trimmed, stripos($trimmed, ',') + 1);
                     if (empty($current['name'])) {
@@ -157,86 +142,78 @@ class ImportChannels extends Command
                     }
                 }
 
-                // Pasamos a la siguiente línea; el canal completo se cerrará cuando encontremos la URL
+                // Move to next line; URL will close this channel record
                 continue;
             }
 
-            // 7.5. Si la línea empieza con "#EXTVLCOPT:", buscamos user_agent
+            // 7.5. Parse #EXTVLCOPT: for user_agent
             if (stripos($trimmed, '#EXTVLCOPT:') === 0) {
-                // Ejemplo: #EXTVLCOPT:http-user-agent=Mozilla/5.0 (...)
+                // Example: #EXTVLCOPT:http-user-agent=Mozilla/5.0 (...)
                 if (preg_match('/http-user-agent=(.*)/i', $trimmed, $m2)) {
                     $ua = trim($m2[1]);
-                    $current['user_agent'] = trim($ua, "\"");
+                    $current['user_agent'] = trim($ua, '"');
                 }
                 continue;
             }
 
-            // 7.6. Si la línea empieza con "#KODIPROP:", buscamos manifest_type, license_type, license_key
+            // 7.6. Parse #KODIPROP: for manifest_type, license_type, and license_key
             if (stripos($trimmed, '#KODIPROP:') === 0) {
                 $kodiprop = substr($trimmed, strlen('#KODIPROP:'));
 
-                // 7.6.1. Capturar manifest_type
+                // 7.6.1. Capture manifest_type
                 if (preg_match('/inputstream\.adaptive\.manifest_type=([^\s]+)/i', $kodiprop, $m3)) {
                     $current['manifest_type'] = trim($m3[1]);
                 }
 
-                // 7.6.2. Capturar license_type
+                // 7.6.2. Capture license_type
                 if (preg_match('/inputstream\.adaptive\.license_type=([^\s]+)/i', $kodiprop, $m4)) {
                     $current['license_type'] = trim($m4[1]);
                 }
 
-                // 7.6.3. Capturar license_key:
-                //   - Caso JSON con llaves: { … }
-                //   - Caso token tipo "hex:hex" (sin espacios)
+                // 7.6.3. Capture license_key (JSON or token format)
                 if (preg_match('/inputstream\.adaptive\.license_key=({.*})/i', $kodiprop, $m5_json)) {
-                    // Si es JSON (encerrado en llaves), lo tomamos completo (incluyendo espacios internos)
+                    // JSON format including braces
                     $current['api_key'] = trim($m5_json[1]);
-                }
-                elseif (preg_match('/inputstream\.adaptive\.license_key=([^\s]+)/i', $kodiprop, $m5_plain)) {
-                    // Si no es JSON, es un token corto (hex:hex), lo tomamos tal cual
+                } elseif (preg_match('/inputstream\.adaptive\.license_key=([^\s]+)/i', $kodiprop, $m5_plain)) {
+                    // Plain token (hex:hex)
                     $current['api_key'] = trim($m5_plain[1]);
                 }
 
-                // 7.6.4. Stream headers (X-TCDN-token=…) lo ignoramos deliberadamente
+                // 7.6.4. Deliberately ignore stream headers (X-TCDN-token)
                 continue;
             }
 
-            // 7.7. Si la línea NO empieza con "#" ni con "<" ni está vacía => es la URL final del canal
+            // 7.7. If line does not start with '#' or '<' and is not empty => it's the channel URL
             if (substr($trimmed, 0, 1) !== '#' && substr($trimmed, 0, 1) !== '<') {
-                // 7.7.1. Asignamos la URL
+                // 7.7.1. Assign the URL
                 $current['url_channel'] = $trimmed;
 
-                // 7.7.2. Ya tenemos todo el bloque del canal, procedemos a guardarlo
+                // 7.7.2. We have all channel data, proceed to save
 
-                // 7.7.2.1. Buscar la categoría en base a group_title
+                // 7.7.2.1. Find category by group_title
                 $catId = null;
-                if (!empty($current['group_title'])) {
+                if (! empty($current['group_title'])) {
                     $categoria = ChannelCategory::where('name', $current['group_title'])->first();
                     if ($categoria) {
                         $catId = $categoria->id;
                     } else {
-                        // Si la categoría no existe, puedes dejar null
-                        // O bien comentarlo para crearla al vuelo:
-                        // $categoria = ChannelCategory::create(['name' => $current['group_title'], 'order' => 1]);
-                        // $catId = $categoria->id;
+                        // Category not found, leave as null or create on the fly if desired
                         $catId = null;
                     }
                 }
 
-                // 7.7.2.2. Limpiar catchup_source de posibles tokens (si fuera necesario)
-                if (!empty($current['catchup_source'])) {
-                    // Por si la URL contuviera "?X-TCDN-token=...&..." o "&X-TCDN-token=..."
+                // 7.7.2.2. Clean catchup_source from potential tokens
+                if (! empty($current['catchup_source'])) {
                     $current['catchup_source'] = preg_replace(
                         '/([?&])X-TCDN-token=[^&]+(&?)/i',
                         '$1',
                         $current['catchup_source']
                     );
-                    // Quitar un posible "&" sobrante al final
                     $current['catchup_source'] = rtrim($current['catchup_source'], '&');
                 }
 
-                // 7.7.2.3. Preparamos array con todos los datos a insertar
-                $datosCanal = [
+                // 7.7.2.3. Prepare data array for insertion
+                $channelData = [
                     'category_id'   => $catId,
                     'name'          => $current['name']           ?? null,
                     'tvg_id'        => $current['tvg_id']         ?? null,
@@ -249,42 +226,29 @@ class ImportChannels extends Command
                     'catchup'       => $current['catchup']        ?? null,
                     'catchup_days'  => $current['catchup_days']   ?? null,
                     'catchup_source'=> $current['catchup_source'] ?? null,
-                    'order'         => $orderCounter,  // Orden global incremental
+                    'order'         => $orderCounter,
                 ];
 
-                // 7.7.2.4. Insertar en la tabla channels
+                // 7.7.2.4. Insert into channels table
                 try {
-                    Channel::create($datosCanal);
-                    $contadorCanales++;
-                    $this->info("Canal importado: {$current['name']} (tvg-id: {$current['tvg_id']})");
+                    Channel::create($channelData);
+                    $channelCount++;
+                    $this->info("Imported channel: {$current['name']} (tvg-id: {$current['tvg_id']})");
                 } catch (\Exception $e) {
-                    $this->error("Error al insertar canal {$current['name']}: " . $e->getMessage());
+                    $this->error("Error inserting channel {$current['name']}: " . $e->getMessage());
                 }
 
-                // 7.7.2.5. Preparar para el siguiente canal: incrementar orden y resetear $current
+                // 7.7.2.5. Prepare for next channel: increment order and reset $current
                 $orderCounter++;
-                $current = [
-                    'tvg_id'        => null,
-                    'name'          => null,
-                    'group_title'   => null,
-                    'logo'          => null,
-                    'catchup'       => null,
-                    'catchup_days'  => null,
-                    'catchup_source'=> null,
-                    'user_agent'    => null,
-                    'manifest_type' => null,
-                    'license_type'  => null,
-                    'api_key'       => null,
-                    'url_channel'   => null,
-                ];
+                $current = array_fill_keys(array_keys($current), null);
             }
 
-            // Si la línea no cumple ninguno de los casos anteriores, se descarta
-        } // fin del while
+            // Lines that don't match any case are ignored
+        } // end while
 
         fclose($handle);
 
-        $this->info("Importación finalizada. Total de canales insertados: {$contadorCanales}");
+        $this->info("Import finished. Total channels inserted: {$channelCount}");
 
         return 0;
     }

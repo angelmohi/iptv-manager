@@ -7,8 +7,7 @@ use App\Models\Account;
 class General
 {
     /**
-     * Genera un código alfanumérico de 5 caracteres a partir de una cadena.
-     * Siempre que la cadena sea la misma, el código será el mismo.
+     * Generate a unique code based on a string input and an account ID.
      *
      * @param  string  $input
      * @return string

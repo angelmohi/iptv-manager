@@ -9,17 +9,17 @@ use Illuminate\Support\Facades\DB;
 class ImportChannelCategories extends Command
 {
     /**
-     * El nombre y firma del comando Artisan.
+     * The name and signature of the Artisan command.
      */
     protected $signature = 'import:channel-categories';
 
     /**
-     * La descripción del comando.
+     * The command description.
      */
-    protected $description = 'Importa los grupos (group-title) desde un archivo M3U a la tabla channel_categories, sin duplicados';
+    protected $description = 'Import group titles from an M3U file into the channel_categories table, without duplicates';
 
     /**
-     * Crea una nueva instancia del comando.
+     * Create a new command instance.
      */
     public function __construct()
     {
@@ -27,28 +27,28 @@ class ImportChannelCategories extends Command
     }
 
     /**
-     * Lógica del comando.
+     * Command logic.
      */
     public function handle()
     {
         $filePath = storage_path('app/total_ott.m3u');
 
-        // Verificamos que el archivo exista y sea legible
+        // Check that the file exists and is readable
         if (! is_readable($filePath)) {
-            $this->error("No se puede leer el archivo: {$filePath}");
-            return 1; // Código de error
-        }
-
-        // Abrimos el archivo en modo lectura
-        $handle = fopen($filePath, 'r');
-        if (! $handle) {
-            $this->error("Error al abrir el archivo: {$filePath}");
+            $this->error("Unable to read file: {$filePath}");
             return 1;
         }
 
-        $this->info("Procesando archivo: {$filePath}");
+        // Open the file in read mode
+        $handle = fopen($filePath, 'r');
+        if (! $handle) {
+            $this->error("Error opening file: {$filePath}");
+            return 1;
+        }
 
-        $categories = []; // Array temporal para ir almacenando nombres únicos
+        $this->info("Processing file: {$filePath}");
+
+        $categories = [];
 
         while (! feof($handle)) {
             $line = fgets($handle);
@@ -56,24 +56,24 @@ class ImportChannelCategories extends Command
                 continue;
             }
 
-            // Solo nos interesan las líneas que contienen #EXTINF
-            // (aunque podríamos aplicar directamente la regex sin este chequeo, es más eficiente así)
+            // We only care about lines containing #EXTINF
+            // (although we could apply the regex directly without this check, it's more efficient this way)
             if (stripos($line, '#EXTINF') === false) {
                 continue;
             }
 
-            // Usamos una expresión regular para capturar el valor de group-title="..."
-            // La sintaxis busca group-title="(...)"
+            // Use a regular expression to capture the value of group-title="..."
+            // The syntax looks for group-title="(...)"
             if (preg_match('/group-title="([^"]+)"/i', $line, $matches)) {
                 $groupTitle = trim($matches[1]);
 
-                // Ignoramos si viene vacío
+                // Ignore if it's empty
                 if (strlen($groupTitle) === 0) {
                     continue;
                 }
 
-                // Si no está ya en nuestro array temporal, lo añadimos.
-                // Esto evita procesar duplicados internos en el mismo archivo.
+                // If it's not already in our temporary array, add it.
+                // This prevents processing internal duplicates in the same file.
                 if (! in_array($groupTitle, $categories, true)) {
                     $categories[] = $groupTitle;
                 }
@@ -82,38 +82,40 @@ class ImportChannelCategories extends Command
 
         fclose($handle);
 
-        $this->info('Categorías encontradas en el archivo: ' . count($categories));
+        $this->info('Categories found in file: ' . count($categories));
 
-        // Ahora, por cada categoría única en el array, la insertamos en la BD
-        // solo si no existe ya (para no duplicar).
-        // Podemos usar firstOrCreate para simplificar.
+        // Now, for each unique category in the array, insert it into the DB
+        // only if it doesn't already exist (to avoid duplicates).
+        // We can use firstOrCreate to simplify.
         $insertCount = 0;
         DB::beginTransaction();
         try {
             foreach ($categories as $catName) {
-                // Puedes ajustar el valor de 'order' según necesites. Aquí lo dejamos en 1 por defecto.
+                // You can adjust the 'order' value as needed. Here we leave it at 1 by default.
                 $categoria = ChannelCategory::firstOrCreate(
                     ['name' => $catName],
                     ['order' => 1]
                 );
 
-                // Si fue recién creada (no existía), incrementamos el contador
+                // If it was just created (didn't exist), increment the counter
                 if ($categoria->wasRecentlyCreated) {
                     $insertCount++;
-                    $this->info("Se creó categoría: {$catName}");
+                    $this->info("Created category: {$catName}");
                 } else {
-                    $this->line("Ya existe categoría: {$catName} (omitido)");
+                    $this->line("Category already exists: {$catName} (skipped)");
                 }
             }
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->error("Ocurrió un error al guardar en la BD: " . $e->getMessage());
+            // An error occurred while saving to the DB
+            $this->error("Error saving to the DB: " . $e->getMessage());
             return 1;
         }
 
-        $this->info("Proceso finalizado. Categorías nuevas insertadas: {$insertCount}");
+        // Process finished. New categories inserted: {$insertCount}
+        $this->info("Process completed. New categories inserted: {$insertCount}");
 
-        return 0; // Éxito
+        return 0; // Success
     }
 }
