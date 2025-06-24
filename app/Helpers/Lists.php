@@ -17,9 +17,9 @@ class Lists
     public static function generateTivimateList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
+        $folder = $account->folder ?? General::codeFromString($account->username, $account);
 
         // Create the folder if it doesn't exist
-        $folder = General::codeFromString($account->username, $account);
         if (!Storage::disk('local')->exists($folder)) {
             Storage::disk('local')->makeDirectory($folder);
         }
@@ -105,9 +105,9 @@ class Lists
     public static function generateOttList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
+        $folder = $account->folder ?? General::codeFromString($account->username, $account);
 
         // Create the folder if it doesn't exist
-        $folder = General::codeFromString($account->username, $account);
         if (!Storage::disk('local')->exists($folder)) {
             Storage::disk('local')->makeDirectory($folder);
         }

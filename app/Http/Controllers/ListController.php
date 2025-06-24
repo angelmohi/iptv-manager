@@ -49,6 +49,8 @@ class ListController extends Controller
             abort(404, 'El archivo total.m3u no se encontró.');
         }
 
+        $account = Account::where('folder', $folder)->first();
+
         $ip = request()->query('client_ip', request()->ip());
         $locationData = [
             'city' => null,
@@ -77,6 +79,7 @@ class ListController extends Controller
         
         DownloadLog::create([
             'ip' => $ip,
+            'account_id' => $account->id ?? null,
             'list' => 'Tivimate',
             'city' => $locationData['city'],
             'region' => $locationData['region'],
@@ -109,6 +112,8 @@ class ListController extends Controller
             abort(404, 'El archivo total_ott.m3u no se encontró.');
         }
 
+        $account = Account::where('folder', $folder)->first();
+
         $ip = request()->query('client_ip', request()->ip());
         $locationData = [
             'city' => null,
@@ -137,6 +142,7 @@ class ListController extends Controller
 
         DownloadLog::create([
             'ip' => $ip,
+            'account_id' => $account->id ?? null,
             'list' => 'OTT',
             'city' => $locationData['city'],
             'region' => $locationData['region'],

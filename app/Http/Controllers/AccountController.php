@@ -47,7 +47,7 @@ class AccountController extends Controller
      */
     public function edit(Account $account) : View
     {
-        $folder = General::codeFromString($account->username, $account);
+        $folder = $account->folder ?? General::codeFromString($account->username, $account);
         return view('accounts.edit', compact('account', 'folder'));
     }
 
@@ -57,6 +57,7 @@ class AccountController extends Controller
     public function store(Request $request) : JsonResponse
     {
         $data = $request->validate([
+            'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:accounts',
             'password' => 'required',
         ]);
@@ -64,6 +65,10 @@ class AccountController extends Controller
         $data['password'] = Crypt::encryptString($data['password']);
 
         $account = Account::create($data);
+
+        // Generate a unique folder name based on the username
+        $account->folder = General::codeFromString($account->username, $account);
+        $account->save();
 
         flashSuccessMessage('Cuenta creada correctamente.');
         return jsonIframeRedirection(route('accounts.edit', $account->id));

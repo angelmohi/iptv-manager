@@ -14,7 +14,9 @@ class Account extends Model
     protected $fillable = [
         'username',
         'password',
+        'name',
         'device_id',
+        'folder',
         'token',
         'token_expires_at',
     ];

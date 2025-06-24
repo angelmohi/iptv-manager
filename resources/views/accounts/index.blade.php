@@ -21,7 +21,7 @@
                     <table class="table table-striped" style="cursor: pointer;">
                         <thead>
                             <tr>
-                                <th>Usuario</th>
+                                <th>Nombre</th>
                                 <th>Fecha de expiración del token</th>
                                 <th>Fecha de creación</th>
                             </tr>
@@ -29,7 +29,7 @@
                         <tbody>
                             @foreach ($accounts as $account)
                             <tr data-href="{{ route('accounts.edit', $account->id) }}">
-                                <td>{{ $account->username }}</td>
+                                <td>{{ $account->name }}</td>
                                 <td>
                                     @if ($account->token_expires_at)
                                         {{ $account->token_expires_at->format('d/m/Y H:i') }}

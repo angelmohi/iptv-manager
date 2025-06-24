@@ -1,6 +1,10 @@
 <div class="row g-4">
     <div class="col-md-6">
-        <label for="f-username">Usuario</label>
+        <label for="f-name">Nombre</label>
+        <input type="text" class="form-control" id="f-name" name="name" value="{{ $account->name ?? '' }}" @if ($editing) disabled @endif>
+    </div>
+    <div class="col-md-6">
+        <label for="f-username">Email</label>
         <input type="text" class="form-control" id="f-username" name="username" value="{{ $account->username ?? '' }}" @if ($editing) disabled @endif>
     </div>
     @if (!$editing)

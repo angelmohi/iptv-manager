@@ -16,12 +16,18 @@ return new class extends Migration
 
             $table->string('username')->unique();
             $table->string('password');
+            $table->string('name')->nullable();
             $table->text('device_id')->nullable();
             $table->text('token')->nullable();
             $table->timestamp('token_expires_at')->nullable();
 
             $table->timestamps();
             $table->softDeletes();
+        });
+
+        Schema::table('download_log', function (Blueprint $table) {
+            $table->unsignedBigInteger('account_id')->nullable()->after('id');
+            $table->foreign('account_id')->references('id')->on('accounts');
         });
     }
 
@@ -30,6 +36,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('download_log', function (Blueprint $table) {
+            $table->dropForeign(['account_id']);
+            $table->dropColumn('account_id');
+        });
+        
         Schema::dropIfExists('accounts');
     }
 };
