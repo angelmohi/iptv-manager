@@ -188,7 +188,7 @@ CommonFunctions.notificationConfirmPost = function(text, buttonText, url, confir
         showCancelButton: true,
         confirmButtonColor: confirmButtonColor,
         confirmButtonText: buttonText,
-        cancelButtonText: 'Cancel',
+        cancelButtonText: 'Cancelar',
         showLoaderOnConfirm: true,
         preConfirm: function() {
             return new Promise(function(resolve) {

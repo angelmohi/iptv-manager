@@ -91,13 +91,13 @@
                         </a>
                         <div class="dropdown-menu dropdown-menu-end pt-0 mt-2">
                             <div class="dropdown-header bg-light py-2">
-                                <div class="fw-semibold">User</div>
+                                <div class="fw-semibold">Usuario</div>
                             </div>
                             <a class="dropdown-item mt-1" href="{{ route('logout') }}"
                                 onclick="event.preventDefault();
                                                 document.getElementById('logout-form').submit();">
                                 <i class="fas fa-sign-out-alt me-2"></i>
-                                {{ __('Logout') }}
+                                {{ __('Cerrar sesión') }}
                             </a>
 
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
