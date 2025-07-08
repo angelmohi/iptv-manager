@@ -18,6 +18,7 @@
         <hr>
         <form method="POST" action="{{ route('accounts.update', $account->id) }}" class="mb-5">
             @csrf
+            @method('PUT')
             @include('accounts._form', ['editing' => true])
         </form>
         <hr>

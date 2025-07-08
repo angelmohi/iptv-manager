@@ -27,6 +27,7 @@ class Channel extends Model
         'order',
         'is_active',
         'apply_token',
+        'parental_control',
     ];
 
     public $timestamps = true;

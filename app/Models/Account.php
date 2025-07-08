@@ -17,6 +17,7 @@ class Account extends Model
         'name',
         'device_id',
         'folder',
+        'parental_control',
         'token',
         'token_expires_at',
     ];

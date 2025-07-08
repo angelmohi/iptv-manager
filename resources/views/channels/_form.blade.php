@@ -84,6 +84,13 @@
                     <option value="0" {{ (isset($channel) && !$channel->apply_token) ? 'selected' : '' }}>No</option>
                 </select>
             </div>
+            <div class="col-12 col-sm-12 col-md-4 form-group">
+                <label for="f-parental_control">Control Parental</label>
+                <select class="form-control" id="f-parental_control" name="parental_control">
+                    <option value="1" {{ (isset($channel) && $channel->parental_control) ? 'selected' : '' }}>Sí</option>
+                    <option value="0" {{ (isset($channel) && !$channel->parental_control) ? 'selected' : '' }}>No</option>
+                </select>
+            </div>
         </div>
 
         <div class="row mt-3">

@@ -67,6 +67,7 @@ class ChannelController extends Controller
             'catchup_source' => 'nullable',
             'is_active' => 'required|boolean',
             'apply_token' => 'required|boolean',
+            'parental_control' => 'required|boolean',
         ]);
 
         $data['order'] = Channel::max('order') + 1;
@@ -97,6 +98,7 @@ class ChannelController extends Controller
             'catchup_source' => 'nullable',
             'is_active' => 'required|boolean',
             'apply_token' => 'required|boolean',
+            'parental_control' => 'required|boolean',
         ]);
 
         $channel->update($data);

@@ -24,9 +24,14 @@ class Lists
             Storage::disk('local')->makeDirectory($folder);
         }
 
-        $channels = Channel::with('category')
-            ->where('is_active', true)
-            ->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
+        $queryChannels = Channel::with('category')
+            ->where('is_active', true);
+
+        if ($account->parental_control) {
+            $queryChannels->where('parental_control', false);
+        }
+
+        $channels = $queryChannels->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
             ->orderBy('channel_categories.order', 'asc')
             ->orderBy('channels.order', 'asc')
             ->select('channels.*')
@@ -112,9 +117,14 @@ class Lists
             Storage::disk('local')->makeDirectory($folder);
         }
 
-        $channels = Channel::with('category')
-            ->where('is_active', true)
-            ->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
+        $queryChannels = Channel::with('category')
+            ->where('is_active', true);
+
+        if ($account->parental_control) {
+            $queryChannels->where('parental_control', false);
+        }
+
+        $channels = $queryChannels->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
             ->orderBy('channel_categories.order', 'asc')
             ->orderBy('channels.order', 'asc')
             ->select('channels.*')

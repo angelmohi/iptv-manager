@@ -75,6 +75,22 @@ class AccountController extends Controller
     }
 
     /**
+     * Update the account.
+     */
+    public function update(Request $request, Account $account) : JsonResponse
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'parental_control' => 'required|boolean',
+        ]);
+
+        $account->update($data);
+
+        flashSuccessMessage('Cuenta actualizada correctamente.');
+        return jsonIframeRedirection(route('accounts.edit', $account->id));
+    }
+
+    /**
      * Generate a new token for the account.
      */
     public function generateToken(Account $account) : JsonResponse

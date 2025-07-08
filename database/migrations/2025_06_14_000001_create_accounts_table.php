@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('name')->nullable();
             $table->text('device_id')->nullable();
+            $table->boolean('parental_control')->default(false);
             $table->text('token')->nullable();
             $table->timestamp('token_expires_at')->nullable();
 
