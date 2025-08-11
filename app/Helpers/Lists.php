@@ -38,7 +38,7 @@ class Lists
             ->get();
 
         // Generate list for Tivimate
-        $tivimateLines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_US1.xml.gz"'];
+        $tivimateLines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_US1.xml.gz, https://github.com/HelmerLuzo/PlutoTV_HL/raw/refs/heads/main/epg/es.xml.gz, https://github.com/HelmerLuzo/RakutenTV_HL/raw/refs/heads/main/epg/RakutenTV.xml.gz, https://raw.github.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/es.xml.gz"'];
         $tivimateLines[] = '';
 
         foreach ($channels as $channel) {
@@ -131,7 +131,7 @@ class Lists
             ->get();
 
         // Generate list for OTT
-        $ottLines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_US1.xml.gz"'];
+        $ottLines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_US1.xml.gz, https://github.com/HelmerLuzo/PlutoTV_HL/raw/refs/heads/main/epg/es.xml.gz, https://github.com/HelmerLuzo/RakutenTV_HL/raw/refs/heads/main/epg/RakutenTV.xml.gz, https://raw.github.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/es.xml.gz"'];
 
         $ottLines[] = '';
         foreach ($channels as $channel) {
