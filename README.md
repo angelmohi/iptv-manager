@@ -33,8 +33,6 @@
   - [🔧 Desarrollo](#-desarrollo)
   - [📱 API Endpoints](#-api-endpoints)
   - [🤝 Contribución](#-contribución)
-  - [📄 Licencia](#-licencia)
-  - [👨‍💻 Autor](#-autor)
 
 ## 🌟 Descripción
 
