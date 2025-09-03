@@ -15,9 +15,9 @@
 
 </div>
 
-## � Tabla de Contenidos
+## 📋 Tabla de Contenidos
 
-- [�📺 IPTV Manager](#-iptv-manager)
+- [📺 IPTV Manager](#-iptv-manager)
   - [📋 Tabla de Contenidos](#-tabla-de-contenidos)
   - [🌟 Descripción](#-descripción)
   - [✨ Características Principales](#-características-principales)
@@ -96,7 +96,7 @@ graph TD
 
 ## 🚀 Requisitos del Sistema
 
-### � Requisitos Mínimos
+### 📋 Requisitos Mínimos
 
 | Componente | Versión Mínima | Recomendado |
 |------------|----------------|-------------|
