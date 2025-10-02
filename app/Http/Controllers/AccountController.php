@@ -99,6 +99,10 @@ class AccountController extends Controller
             Token::refreshCdnToken($account);
             Lists::generateTivimateList($account);
             Lists::generateOttList($account);
+			Lists::generateCineList($account);
+			Lists::generateSeriesList($account);
+			Lists::generateCineOttList($account);
+			Lists::generateSeriesOttList($account);
         } catch (TokenException $e) {
             Log::error($e);
             flashDangerMessage($e->getMessage());

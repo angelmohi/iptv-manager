@@ -58,6 +58,56 @@
                 </div>
             </div>
         </div>
+		<h4 class="mt-3"></h4>
+		<div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">{{ __('Lista de cine') }}</div>
+
+                    <div class="card-body">
+                        <p>Enlace de la lista: <br><strong>{{ route('lists.download.cine', $folder) }}</strong></p>
+
+                        <a href="{{ route('lists.download.cine', $folder) }}" target="_blank" class="btn btn-outline-primary">Descargar</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">{{ __('Lista de series') }}</div>
+
+                    <div class="card-body">
+                        <p>Enlace de la lista: <br><strong>{{ route('lists.download.series', $folder) }}</strong></p>
+
+                        <a href="{{ route('lists.download.series', $folder) }}" target="_blank" class="btn btn-outline-primary">Descargar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+		<h4 class="mt-3"></h4>
+		<div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">{{ __('Lista de cine ott') }}</div>
+
+                    <div class="card-body">
+                        <p>Enlace de la lista: <br><strong>{{ route('lists.download.cineott', $folder) }}</strong></p>
+
+                        <a href="{{ route('lists.download.cineott', $folder) }}" target="_blank" class="btn btn-outline-primary">Descargar</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">{{ __('Lista de series ott') }}</div>
+
+                    <div class="card-body">
+                        <p>Enlace de la lista: <br><strong>{{ route('lists.download.seriesott', $folder) }}</strong></p>
+
+                        <a href="{{ route('lists.download.seriesott', $folder) }}" target="_blank" class="btn btn-outline-primary">Descargar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

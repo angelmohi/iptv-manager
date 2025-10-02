@@ -23,10 +23,91 @@ class ChannelController extends Controller
     /**
      * Display a listing of the channels.
      */
-    public function index() : View
+    public function index(Request $request) : View|JsonResponse
     {
-        $channels = Channel::all();
-        return view('channels.index', compact('channels'));
+        if ($request->ajax()) {
+            return $this->getChannelsData($request);
+        }
+        
+        return view('channels.index');
+    }
+
+    /**
+     * Get channels data for DataTables AJAX request.
+     */
+    public function getChannelsData(Request $request) : JsonResponse
+    {
+        $query = Channel::with('category');
+        
+        // Handle search
+        if ($request->has('search') && !empty($request->search['value'])) {
+            $searchValue = $request->search['value'];
+            $query->where(function($q) use ($searchValue) {
+                $q->where('name', 'like', "%{$searchValue}%")
+                  ->orWhere('tvg_id', 'like', "%{$searchValue}%")
+                  ->orWhere('tvg_type', 'like', "%{$searchValue}%")
+                  ->orWhereHas('category', function($q) use ($searchValue) {
+                      $q->where('name', 'like', "%{$searchValue}%");
+                  });
+            });
+        }
+
+        // Handle ordering
+        if ($request->has('order')) {
+            $orderColumn = $request->columns[$request->order[0]['column']]['data'];
+            $orderDirection = $request->order[0]['dir'];
+            
+            switch ($orderColumn) {
+                case 'name':
+                    $query->orderBy('name', $orderDirection);
+                    break;
+                case 'category':
+                    $query->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
+                          ->orderBy('channel_categories.name', $orderDirection)
+                          ->select('channels.*');
+                    break;
+                case 'is_active':
+                    $query->orderBy('is_active', $orderDirection);
+                    break;
+                case 'apply_token':
+                    $query->orderBy('apply_token', $orderDirection);
+                    break;
+                case 'tvg_type':
+                    $query->orderBy('tvg_type', $orderDirection);
+                    break;
+                default:
+                    $query->orderBy('id', 'asc');
+            }
+        } else {
+            $query->orderBy('id', 'asc');
+        }
+
+        $totalRecords = Channel::count();
+        $totalFiltered = $query->count();
+
+        // Handle pagination
+        $start = $request->start ?? 0;
+        $length = $request->length ?? 10;
+        $channels = $query->skip($start)->take($length)->get();
+
+        $data = [];
+        foreach ($channels as $channel) {
+            $data[] = [
+                'name' => $channel->name,
+                'category' => $channel->category->name ?? 'Sin categoría',
+                'apply_token' => $channel->apply_token ? 'Sí' : 'No',
+                'is_active' => $channel->is_active ? 'Sí' : 'No',
+                'tvg_type' => $channel->tvg_type ?? 'Indefinido',
+                'edit_url' => route('channels.edit', $channel->id),
+            ];
+        }
+
+        return response()->json([
+            'draw' => intval($request->draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data
+        ]);
     }
 
     /**
@@ -54,6 +135,7 @@ class ChannelController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
+			'tvg_type' => 'required',
             'category_id' => 'required|exists:channel_categories,id',
             'tvg_id' => 'nullable|string|max:255',
             'logo' => 'required',
@@ -85,6 +167,7 @@ class ChannelController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
+			'tvg_type' => 'required',
             'category_id' => 'required|exists:channel_categories,id',
             'tvg_id' => 'nullable|string|max:255',
             'logo' => 'required',

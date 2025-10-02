@@ -47,6 +47,7 @@ class ImportChannels extends Command
         // 4. Temporary variables to build each channel
         $current = [
             'tvg_id'        => null,
+			'tvg_type'      => null,
             'name'          => null,
             'group_title'   => null,
             'logo'          => null,
@@ -112,6 +113,9 @@ class ImportChannels extends Command
                         case 'tvg-id':
                             $current['tvg_id'] = $val;
                             break;
+						case 'tvg-type':
+                            $current['tvg_type'] = $val;
+                            break;
                         case 'tvg-name':
                             $current['name'] = $val;
                             break;
@@ -134,13 +138,14 @@ class ImportChannels extends Command
                     }
                 }
 
-                // 7.4.3. If tvg-name was missing, take the human-readable name after the comma
-                if (stripos($trimmed, ',') !== false) {
-                    $afterComma = substr($trimmed, stripos($trimmed, ',') + 1);
-                    if (empty($current['name'])) {
-                        $current['name'] = trim($afterComma);
-                    }
-                }
+				// 7.4.3. If tvg-name was missing, take the human-readable name after the ",
+				if (stripos($trimmed, '",') !== false) {
+					$afterQuoteComma = substr($trimmed, stripos($trimmed, '",') + 2);
+					if (empty($current['name'])) {
+						$current['name'] = trim($afterQuoteComma);
+					}
+				}
+
 
                 // Move to next line; URL will close this channel record
                 continue;
@@ -216,6 +221,7 @@ class ImportChannels extends Command
                 $channelData = [
                     'category_id'   => $catId,
                     'name'          => $current['name']           ?? null,
+					'tvg_type'      => $current['tvg_type']         ?? null,
                     'tvg_id'        => $current['tvg_id']         ?? null,
                     'logo'          => $current['logo']           ?? null,
                     'user_agent'    => $current['user_agent']     ?? null,

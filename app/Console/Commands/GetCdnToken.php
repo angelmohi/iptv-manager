@@ -24,6 +24,10 @@ class GetCdnToken extends Command
                 Log::info("CDN Token obtenido: {$result['cdnToken']}");
                 Lists::generateTivimateList($account);
                 Lists::generateOttList($account);
+				Lists::generateCineList($account);
+				Lists::generateSeriesList($account);
+				Lists::generateCineOttList($account);
+				Lists::generateSeriesOttList($account);
                 Log::info('CDN Token obtenido y reemplazado correctamente en los archivos.');
             } catch (TokenException $e) {
                 $this->error($e->getMessage());

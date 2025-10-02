@@ -28,6 +28,7 @@ class Channel extends Model
         'is_active',
         'apply_token',
         'parental_control',
+		'tvg_type',
     ];
 
     public $timestamps = true;

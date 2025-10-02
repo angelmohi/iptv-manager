@@ -27,6 +27,7 @@ return new class extends Migration
 
             $table->string('name');
             $table->text('tvg_id')->nullable();
+            $table->string('tvg_type')->nullable();
             $table->string('logo')->nullable();
             $table->text('user_agent')->nullable();
             $table->text('manifest_type')->nullable();

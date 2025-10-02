@@ -36,6 +36,11 @@ Route::prefix('lists')->controller(ListController::class)->group(function() {
     Route::post('/update', 'update')->name('lists.update');
     Route::get('/tivimate/{folder}', 'downloadTivimate')->name('lists.download.tivimate');
     Route::get('/ott/{folder}', 'downloadOtt')->name('lists.download.ott');
+	Route::get('/cine/{folder}', 'downloadCine')->name('lists.download.cine');
+    Route::get('/series/{folder}', 'downloadSeries')->name('lists.download.series');
+	Route::get('/cineOtt/{folder}', 'downloadCineOtt')->name('lists.download.cineott');
+    Route::get('/seriesOtt/{folder}', 'downloadSeriesOtt')->name('lists.download.seriesott');
+	
 });
 
 Route::prefix('channel-categories')->controller(ChannelCategoryController::class)->group(function() {

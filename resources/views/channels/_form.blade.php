@@ -70,26 +70,34 @@
         </div>
 
         <div class="row mt-3">
-            <div class="col-12 col-sm-12 col-md-4 form-group">
+            <div class="col-12 col-sm-12 col-md-3 form-group">
                 <label for="f-is_active">Activo</label>
                 <select class="form-control" id="f-is_active" name="is_active">
                     <option value="1" {{ (isset($channel) && $channel->is_active) ? 'selected' : '' }}>Sí</option>
                     <option value="0" {{ (isset($channel) && !$channel->is_active) ? 'selected' : '' }}>No</option>
                 </select>
             </div>
-            <div class="col-12 col-sm-12 col-md-4 form-group">
+            <div class="col-12 col-sm-12 col-md-3 form-group">
                 <label for="f-apply_token">Token</label>
                 <select class="form-control" id="f-apply_token" name="apply_token">
                     <option value="1" {{ (isset($channel) && $channel->apply_token) ? 'selected' : '' }}>Sí</option>
                     <option value="0" {{ (isset($channel) && !$channel->apply_token) ? 'selected' : '' }}>No</option>
                 </select>
             </div>
-            <div class="col-12 col-sm-12 col-md-4 form-group">
-                <label for="f-parental_control">Control Parental</label>
+            <div class="col-12 col-sm-12 col-md-3 form-group">
+                <label for="f-parental_control"">Control Parental</label>
                 <select class="form-control" id="f-parental_control" name="parental_control">
                     <option value="1" {{ (isset($channel) && $channel->parental_control) ? 'selected' : '' }}>Sí</option>
                     <option value="0" {{ (isset($channel) && !$channel->parental_control) ? 'selected' : '' }}>No</option>
                 </select>
+            </div>
+			<div class="col-12 col-sm-12 col-md-3 form-group">
+                <label for="f-tvg_type">Tipo de canal</label>
+				<select class="form-control" id="f-tvg_type" name="tvg_type">
+					<option value="live" {{ (isset($channel) && $channel->tvg_type === 'live') ? 'selected' : '' }}>Live</option>
+					<option value="movie" {{ (isset($channel) && $channel->tvg_type === 'movie') ? 'selected' : '' }}>Movie</option>
+					<option value="series" {{ (isset($channel) && $channel->tvg_type === 'series') ? 'selected' : '' }}>Series</option>
+				</select>
             </div>
         </div>
 
