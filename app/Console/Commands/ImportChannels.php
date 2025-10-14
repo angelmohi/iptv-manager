@@ -59,6 +59,7 @@ class ImportChannels extends Command
             'license_type'  => null,
             'api_key'       => null,
             'url_channel'   => null,
+			'apply_token'   => 0,
         ];
 
         // 5. Counter for successfully processed channels
@@ -96,6 +97,7 @@ class ImportChannels extends Command
             if (stripos($trimmed, '#EXTINF:') === 0) {
                 // 7.4.1. Reset $current for a new channel
                 $current = array_fill_keys(array_keys($current), null);
+				$current['apply_token'] = 0;
 
                 // 7.4.2. Extract key="value" attributes from the EXTINF line
                 //     Use ([\w-]+) to allow hyphens in keys.
@@ -145,7 +147,7 @@ class ImportChannels extends Command
 						$current['name'] = trim($afterQuoteComma);
 					}
 				}
-
+				
 
                 // Move to next line; URL will close this channel record
                 continue;
@@ -183,6 +185,10 @@ class ImportChannels extends Command
                     // Plain token (hex:hex)
                     $current['api_key'] = trim($m5_plain[1]);
                 }
+					// Detectar stream_headers con X-TCDN-token
+				if (stripos($kodiprop, 'inputstream.adaptive.stream_headers=X-TCDN-token=') !== false) {
+					$current['apply_token'] = 1;
+				}
 
                 // 7.6.4. Deliberately ignore stream headers (X-TCDN-token)
                 continue;
@@ -219,21 +225,22 @@ class ImportChannels extends Command
 
                 // 7.7.2.3. Prepare data array for insertion
                 $channelData = [
-                    'category_id'   => $catId,
-                    'name'          => $current['name']           ?? null,
-					'tvg_type'      => $current['tvg_type']         ?? null,
-                    'tvg_id'        => $current['tvg_id']         ?? null,
-                    'logo'          => $current['logo']           ?? null,
-                    'user_agent'    => $current['user_agent']     ?? null,
-                    'manifest_type' => $current['manifest_type']  ?? null,
-                    'license_type'  => $current['license_type']   ?? null,
-                    'api_key'       => $current['api_key']        ?? null,
-                    'url_channel'   => $current['url_channel']    ?? null,
-                    'catchup'       => $current['catchup']        ?? null,
-                    'catchup_days'  => $current['catchup_days']   ?? null,
-                    'catchup_source'=> $current['catchup_source'] ?? null,
-                    'order'         => $orderCounter,
-                ];
+					'category_id'   => $catId,
+					'name'          => $current['name']           ?? null,
+					'tvg_type'      => $current['tvg_type']       ?? null,
+					'tvg_id'        => $current['tvg_id']         ?? null,
+					'logo'          => $current['logo']           ?? null,
+					'user_agent'    => $current['user_agent']     ?? null,
+					'manifest_type' => $current['manifest_type']  ?? null,
+					'license_type'  => $current['license_type']   ?? null,
+					'api_key'       => $current['api_key']        ?? null,
+					'url_channel'   => $current['url_channel']    ?? null,
+					'catchup'       => $current['catchup']        ?? null,
+					'catchup_days'  => $current['catchup_days']   ?? null,
+					'catchup_source'=> $current['catchup_source'] ?? null,
+					'order'         => $orderCounter,
+					'apply_token'   => $current['apply_token'],  // <-- Insertar el flag aquí
+				];
 
                 // 7.7.2.4. Insert into channels table
                 try {

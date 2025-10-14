@@ -7,6 +7,8 @@ use App\Models\Channel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Artisan;
 
 class ChannelController extends Controller
 {
@@ -232,4 +234,42 @@ class ChannelController extends Controller
         flashSuccessMessage('Canal eliminado correctamente.');
         return jsonIframeRedirection(route('channels.index'));
     }
+	
+	    /**
+     * Upload updated m3u
+     */
+	public function uploadM3U(Request $request)
+	{
+		$request->validate(['archivo' => 'required|file']);
+
+		$file = $request->file('archivo');
+		// Guarda o sobreescribe el archivo con nombre fijo
+		Storage::putFileAs('', $file, 'total_ott.m3u');
+
+		return response()->json(['success' => true]);
+	}
+
+	public function importCategories()
+	{
+		try {
+			$output = Artisan::call('import:channel-categories');
+			$log = Artisan::output();
+			return response()->json(['success' => 'Categorías importadas correctamente', 'log' => $log]);
+		} catch (\Exception $e) {
+			return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
+		}
+	}
+
+	public function importChannels()
+	{
+		try {
+			$output = Artisan::call('import:channels');
+			$log = Artisan::output();
+			return response()->json(['success' => 'Canales importados correctamente', 'log' => $log]);
+		} catch (\Exception $e) {
+			return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
+		}
+	}
+
+
 }

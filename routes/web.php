@@ -22,6 +22,10 @@ use Illuminate\Support\Facades\Route;
 Auth::routes(['register' => false, 'reset' => false]);
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::post('/upload-m3u', [ChannelController::class, 'uploadM3U'])->name('upload.m3u');
+Route::get('/importar-categorias', [ChannelController::class, 'importCategories'])->name('import.categories');
+Route::get('/importar-canales', [ChannelController::class, 'importChannels'])->name('import.channels');
+
 
 Route::prefix('accounts')->controller(AccountController::class)->group(function() {
     Route::get('/', 'index')->name('accounts.index');
@@ -63,3 +67,5 @@ Route::prefix('channels')->controller(ChannelController::class)->group(function(
     Route::post('/reorder', 'reorder')->name('channels.reorder');
     Route::post('/duplicate/{channel}', 'duplicate')->name('channels.duplicate');
 });
+
+
