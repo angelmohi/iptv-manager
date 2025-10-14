@@ -16,6 +16,7 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&display=swap" rel="stylesheet">
 
     <!-- CSS -->
     <link rel="stylesheet" href="{{ asset('assets/vendor/fontawesome-free-5.15.4/css/solid.css') }}">
@@ -28,6 +29,21 @@
     <link href="{{ asset('assets/vendor/select2-4.1.0/css/select2-bootstrap-5-theme.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/vendor/tempus-dominus/css/tempus-dominus.min.css') }}" rel="stylesheet">
     @stack('css')
+    
+    <style>
+        .sidebar-brand-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #a8c0ff 0%, #c3b5ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 8px 0;
+            text-transform: uppercase;
+        }
+    </style>
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/7.6.1/tinymce.min.js" integrity="sha512-bib7srucEhHYYWglYvGY+EQb0JAAW0qSOXpkPTMgCgW8eLtswHA/K4TKyD4+FiXcRHcy8z7boYxk0HTACCTFMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -46,7 +62,7 @@
     <div class="sidebar sidebar-dark sidebar-fixed" id="sidebar">
         <div class="sidebar-brand d-md-flex">
             <a href="{{ route('home') }}" class="d-flex align-items-center sidebar-brand-full text-decoration-none text-white mt-2">
-                <h4>IPTV Manager</h4>
+                <h4 class="sidebar-brand-title">CINESTRELLA</h4>
             </a>
         </div>
         <ul class="sidebar-nav" data-coreui="navigation" data-simplebar="">

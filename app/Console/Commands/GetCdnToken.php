@@ -11,12 +11,23 @@ use Illuminate\Support\Facades\Log;
 
 class GetCdnToken extends Command
 {
-    protected $signature = 'get-cdn-token';
+    protected $signature = 'get-cdn-token {account? : ID de la cuenta (opcional)}';
     protected $description = 'Obtiene el CDN Token.';
 
     public function handle()
     {
-        $accounts = Account::all();
+        $accountId = $this->argument('account');
+
+        if ($accountId) {
+            $accounts = Account::where('id', $accountId)->get();
+            
+            if ($accounts->isEmpty()) {
+                $this->error("No se encontró la cuenta con ID: {$accountId}");
+                return 1;
+            }
+        } else {
+            $accounts = Account::all();
+        }
 
         foreach ($accounts as $account) {
             try {

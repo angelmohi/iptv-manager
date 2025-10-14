@@ -31,7 +31,7 @@
                 <div class="card-header">
                     <h5 class="mb-0">Accesos únicos por lista (últimos 7 días)</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="height: 300px;">
                     <canvas id="accessChart" style="max-height:300px;"></canvas>
                 </div>
             </div>

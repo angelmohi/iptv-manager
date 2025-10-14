@@ -33,8 +33,8 @@
         </form>
 
         <hr>
-        <h4 class="mt-5">Listas de IPTV</h4>
-        <div class="row">
+        <h4 class="mt-5">Listas</h4>
+        <div class="row mt-3">
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">{{ __('Lista para Tivimate') }}</div>
