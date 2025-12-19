@@ -499,4 +499,195 @@ class Lists
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 
+    /**
+     * Generate Kodi list.
+     *
+     * @param  Account  $account
+     * @return void
+     */
+    public static function generateKodiList(Account $account): void
+    {
+        $cdnToken = $account->token ?? '';
+        $folder = $account->folder ?? General::codeFromString($account->username, $account);
+
+        // Create the folder if it doesn't exist
+        if (!Storage::disk('local')->exists($folder)) {
+            Storage::disk('local')->makeDirectory($folder);
+        }
+
+        $queryChannels = Channel::with('category')
+            ->where([
+                ['is_active', true],
+                ['tvg_type', 'live'],
+            ]);
+
+        if ($account->parental_control) {
+            $queryChannels->where('parental_control', false);
+        }
+
+        $channels = $queryChannels->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
+            ->orderBy('channel_categories.order', 'asc')
+            ->orderBy('channels.order', 'asc')
+            ->select('channels.*')
+            ->get();
+
+        // Generate list for Kodi
+        $kodiLines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_US1.xml.gz, https://github.com/HelmerLuzo/PlutoTV_HL/raw/refs/heads/main/epg/es.xml.gz, https://github.com/HelmerLuzo/RakutenTV_HL/raw/refs/heads/main/epg/RakutenTV.xml.gz, https://raw.github.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/es.xml.gz"'];
+        $kodiLines[] = '';
+
+        foreach ($channels as $channel) {
+            $extinf = '#EXTINF: -1';
+
+            if (!empty($channel->tvg_id)) {
+                $extinf .= ' tvg-id="' . $channel->tvg_id . '"';
+            }
+            if (!empty($channel->name)) {
+                $extinf .= ' tvg-name="' . $channel->name . '"';
+            }
+            if ($channel->category && !empty($channel->category->name)) {
+                $extinf .= ' group-title="' . $channel->category->name . '"';
+            }
+            if (!empty($channel->catchup)) {
+                $extinf .= ' catchup-type="' . $channel->catchup . '"';
+            }
+            if (!empty($channel->catchup_source) && $channel->apply_token) {
+                $extinf .= ' catchup-source="' . $channel->catchup_source . '?device_profile=DASH_TV_WIDEVINE&start_time={Y}-{m}-{d}T${start:H:M:S}Z&end_time={Y}-{m}-{d}T${end:H:M:S}Z"';
+            } else if (!empty($channel->catchup_source)) {
+                $extinf .= ' catchup-source="' . $channel->catchup_source . '?device_profile=DASH_TV_WIDEVINE&start_time={Y}-{m}-{d}T${start:H:M:S}Z&end_time={Y}-{m}-{d}T${end:H:M:S}Z"';
+            }
+            if (!empty($channel->catchup_correction)) {
+                $extinf .= ' catchup-correction="' . $channel->catchup_correction . '"';
+            }
+            if (!empty($channel->catchup_days)) {
+                $extinf .= ' catchup-days="' . $channel->catchup_days . '"';
+            }
+            if (!empty($channel->logo)) {
+                $extinf .= ' tvg-logo="' . $channel->logo . '"';
+            }
+
+            $extinf .= ',' . $channel->name;
+
+            $kodiLines[] = $extinf;
+
+            // KODIPROP properties
+            $kodiLines[] = '#KODIPROP:contentlookup=False';
+            
+            if (!empty($channel->manifest_type)) {
+                if ($channel->manifest_type === 'mpd') {
+                    $kodiLines[] = '#KODIPROP:mimetype=application/dash+xml';
+                } else if ($channel->manifest_type === 'hls') {
+                    $kodiLines[] = '#KODIPROP:mimetype=application/x-mpegURL';
+                }
+            }
+            
+            $kodiLines[] = '#KODIPROP:inputstream=inputstream.adaptive';
+            
+            if (!empty($channel->manifest_type)) {
+                $kodiLines[] = '#KODIPROP.inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+            }
+            
+            if ($channel->apply_token) {
+                $kodiLines[] = '#KODIPROP:inputstream.adaptive.manifest_headers=User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0&X-TCDN-token=' . $cdnToken;
+            } else {
+                $kodiLines[] = '#KODIPROP:inputstream.adaptive.manifest_headers=User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0';
+            }
+            
+            if (!empty($channel->api_key)) {
+                // Convert JSON keys to Kodi format (key_id:key)
+                $convertedKey = self::convertJsonKeysToKodi($channel->api_key);
+                if ($convertedKey !== null) {
+                    $kodiLines[] = '#KODIPROP:inputstream.adaptive.drm_legacy=org.w3.clearkey|' . $convertedKey;
+                }
+            }
+
+            if (!empty($channel->url_channel)) {
+                $kodiLines[] = $channel->url_channel;
+            }
+            
+            $kodiLines[] = '';
+        }
+
+        $content = implode("\n", $kodiLines);
+
+        $filename = 'kodi.m3u';
+        Storage::disk('local')->put("{$folder}/{$filename}", $content);
+    }
+
+    /**
+     * Convert JSON DRM keys to Kodi format (key_id:key)
+     *
+     * @param  string  $jsonKeys
+     * @return string|null
+     */
+    private static function convertJsonKeysToKodi(string $jsonKeys): ?string
+    {
+        try {
+            $data = json_decode($jsonKeys, true);
+            
+            if (!isset($data['keys']) || !is_array($data['keys']) || empty($data['keys'])) {
+                return null;
+            }
+            
+            $convertedKeys = [];
+            
+            // Process all keys in the array
+            foreach ($data['keys'] as $keyData) {
+                if (!isset($keyData['kid']) || !isset($keyData['k'])) {
+                    continue;
+                }
+                
+                // Decode base64url to hex
+                $kid = self::base64UrlToHex($keyData['kid']);
+                $k = self::base64UrlToHex($keyData['k']);
+                
+                if (!$kid || !$k) {
+                    continue;
+                }
+                
+                // Format: kid:k
+                $convertedKeys[] = $kid . ':' . $k;
+            }
+            
+            if (empty($convertedKeys)) {
+                return null;
+            }
+            
+            // Join multiple keys with comma
+            return implode(',', $convertedKeys);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+    
+    /**
+     * Convert base64url to hexadecimal
+     *
+     * @param  string  $base64url
+     * @return string|null
+     */
+    private static function base64UrlToHex(string $base64url): ?string
+    {
+        try {
+            // Convert base64url to base64
+            $base64 = strtr($base64url, '-_', '+/');
+            
+            // Add padding if needed
+            $padding = strlen($base64) % 4;
+            if ($padding > 0) {
+                $base64 .= str_repeat('=', 4 - $padding);
+            }
+            
+            // Decode base64 to binary
+            $binary = base64_decode($base64, true);
+            
+            if ($binary === false) {
+                return null;
+            }
+            
+            // Convert binary to hex
+            return bin2hex($binary);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
 }

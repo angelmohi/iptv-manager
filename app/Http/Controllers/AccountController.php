@@ -103,6 +103,7 @@ class AccountController extends Controller
 			Lists::generateSeriesList($account);
 			Lists::generateCineOttList($account);
 			Lists::generateSeriesOttList($account);
+            Lists::generateKodiList($account);
         } catch (TokenException $e) {
             Log::error($e);
             flashDangerMessage($e->getMessage());

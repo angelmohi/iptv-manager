@@ -20,7 +20,7 @@ class ListController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth')->except(['downloadTivimate', 'downloadOtt', 'downloadCine', 'downloadSeries', 'downloadCineOtt', 'downloadSeriesOtt']);
+        $this->middleware('auth')->except(['downloadTivimate', 'downloadOtt', 'downloadCine', 'downloadSeries', 'downloadCineOtt', 'downloadSeriesOtt', 'downloadKodi']);
     }
 
     /**
@@ -36,6 +36,7 @@ class ListController extends Controller
 			Lists::generateSeriesList($account);
 			Lists::generateCineOttList($account);
 			Lists::generateSeriesOttList($account);
+            Lists::generateKodiList($account);
         }
 
         flashSuccessMessage('Listas actualizadas correctamente.');
@@ -408,6 +409,69 @@ class ListController extends Controller
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'seriesOtt.m3u';
+        $mimeType = 'audio/x-mpegurl';
+
+        $headers = [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ];
+
+        return response()->streamDownload(function () use ($fileContent) {
+            echo $fileContent;
+        }, $fileName, $headers);
+    }
+
+    /**
+     * Download the kodi.m3u file.
+     */
+    public function downloadKodi(string $folder): StreamedResponse
+    {
+        $filePath = 'kodi.m3u';
+
+        if (!Storage::exists("{$folder}/{$filePath}")) {
+            abort(404, 'El archivo kodi.m3u no se encontró.');
+        }
+
+        $account = Account::where('folder', $folder)->first();
+
+        $ip = request()->query('client_ip', request()->ip());
+        $locationData = [
+            'city' => null,
+            'region' => null,
+            'country' => null,
+        ];
+
+        try {
+            $response = Http::timeout(10)
+                ->get("https://ipinfo.io/{$ip}/json", [
+                    'token' => env('IPINFO_TOKEN'),
+                ]);
+    
+            if ($response->successful()) {
+                $data = $response->json();
+                $locationData['city']    = $data['city']    ?? null;
+                $locationData['region']  = $data['region']  ?? null;
+                $locationData['country'] = $data['country'] ?? null;
+            } else {
+                Log::error('ipinfo.io returned error: ' . $response->body());
+            }
+    
+        } catch (\Exception $e) {
+            Log::error('Error al conectar con ipinfo.io: ' . $e->getMessage());
+        }
+
+        DownloadLog::create([
+            'ip' => $ip,
+            'account_id' => $account->id ?? null,
+            'list' => 'Kodi',
+            'city' => $locationData['city'],
+            'region' => $locationData['region'],
+            'country' => $locationData['country'],
+            'user_agent' => request()->userAgent(),
+        ]);
+
+        $fileContent = Storage::get("{$folder}/{$filePath}");
+        $fileName = 'kodi.m3u';
         $mimeType = 'audio/x-mpegurl';
 
         $headers = [

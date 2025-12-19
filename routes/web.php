@@ -44,7 +44,7 @@ Route::prefix('lists')->controller(ListController::class)->group(function() {
     Route::get('/series/{folder}', 'downloadSeries')->name('lists.download.series');
 	Route::get('/cineOtt/{folder}', 'downloadCineOtt')->name('lists.download.cineott');
     Route::get('/seriesOtt/{folder}', 'downloadSeriesOtt')->name('lists.download.seriesott');
-	
+    Route::get('/kodi/{folder}', 'downloadKodi')->name('lists.download.kodi');
 });
 
 Route::prefix('channel-categories')->controller(ChannelCategoryController::class)->group(function() {

@@ -85,6 +85,7 @@ class GetCdnTokenScheduledAll extends Command
                 Lists::generateSeriesList($account);
                 Lists::generateCineOttList($account);
                 Lists::generateSeriesOttList($account);
+                Lists::generateKodiList($account);
                 
                 $this->info("✓ Cuenta {$account->id} procesada correctamente");
                 Log::info("GetCdnTokenScheduledAll: CDN Token obtenido y listas generadas para cuenta {$account->id}");
