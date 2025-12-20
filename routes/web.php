@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\ChannelCategoryController;
 use App\Http\Controllers\ChannelController;
+use App\Http\Controllers\ChannelHistoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ListController;
 use App\Http\Controllers\UserController;
@@ -77,5 +78,7 @@ Route::prefix('channels')->controller(ChannelController::class)->group(function(
     Route::post('/reorder', 'reorder')->name('channels.reorder');
     Route::post('/duplicate/{channel}', 'duplicate')->name('channels.duplicate');
 });
+
+Route::get('/logs', [ChannelHistoryController::class, 'index'])->name('logs.index');
 
 

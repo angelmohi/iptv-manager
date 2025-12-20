@@ -33,6 +33,20 @@ class Channel extends Model
     ];
 
     public $timestamps = true;
+    
+    protected static function booted()
+    {
+        static::updated(function ($channel) {
+            if ($channel->wasChanged(['pssh', 'api_key'])) {
+                ChannelHistory::create([
+                    'channel_id' => $channel->id,
+                    'pssh' => $channel->pssh,
+                    'api_key' => $channel->api_key,
+                    'created_by' => auth()->id(),
+                ]);
+            }
+        });
+    }
 
     public function category()
     {
