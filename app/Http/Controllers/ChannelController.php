@@ -96,10 +96,10 @@ class ChannelController extends Controller
         foreach ($channels as $channel) {
             $data[] = [
                 'name' => $channel->name,
-                'category' => $channel->category->name ?? 'Sin categoría',
-                'apply_token' => $channel->apply_token ? 'Sí' : 'No',
-                'is_active' => $channel->is_active ? 'Sí' : 'No',
-                'tvg_type' => $channel->tvg_type ?? 'Indefinido',
+                'category' => $channel->category->name ?? 'Uncategorized',
+                'apply_token' => $channel->apply_token ? 'Yes' : 'No',
+                'is_active' => $channel->is_active ? 'Yes' : 'No',
+                'tvg_type' => $channel->tvg_type ?? 'Undefined',
                 'edit_url' => route('channels.edit', $channel->id),
             ];
         }
@@ -142,6 +142,7 @@ class ChannelController extends Controller
             'tvg_id' => 'nullable|string|max:255',
             'logo' => 'required',
             'url_channel' => 'required',
+            'pssh' => 'nullable',
             'api_key' => 'nullable',
             'user_agent' => 'nullable',
             'manifest_type' => 'nullable',
@@ -158,7 +159,7 @@ class ChannelController extends Controller
 
         $channel = Channel::create($data);
 
-        flashSuccessMessage('Canal creado correctamente.');
+        flashSuccessMessage('Channel created successfully.');
         return jsonIframeRedirection(route('channels.edit', $channel->id));
     }
 
@@ -174,6 +175,7 @@ class ChannelController extends Controller
             'tvg_id' => 'nullable|string|max:255',
             'logo' => 'required',
             'url_channel' => 'required',
+            'pssh' => 'nullable',
             'api_key' => 'nullable',
             'user_agent' => 'nullable',
             'manifest_type' => 'nullable',
@@ -188,7 +190,7 @@ class ChannelController extends Controller
 
         $channel->update($data);
 
-        flashSuccessMessage('Canal actualizado correctamente.');
+        flashSuccessMessage('Channel updated successfully.');
         return jsonIframeRedirection(route('channels.edit', $channel->id));
     }
 
@@ -220,7 +222,7 @@ class ChannelController extends Controller
         $newChannel->name .= ' (Copia)';
         $newChannel->save();
 
-        flashSuccessMessage('Canal duplicado correctamente.');
+        flashSuccessMessage('Channel duplicated successfully.');
         return jsonIframeRedirection(route('channels.edit', $newChannel->id));
     }
 
@@ -231,7 +233,7 @@ class ChannelController extends Controller
     {
         $channel->delete();
 
-        flashSuccessMessage('Canal eliminado correctamente.');
+        flashSuccessMessage('Channel deleted successfully.');
         return jsonIframeRedirection(route('channels.index'));
     }
 	
@@ -254,7 +256,7 @@ class ChannelController extends Controller
 		try {
 			$output = Artisan::call('import:channel-categories');
 			$log = Artisan::output();
-			return response()->json(['success' => 'Categorías importadas correctamente', 'log' => $log]);
+			return response()->json(['success' => 'Categories imported successfully', 'log' => $log]);
 		} catch (\Exception $e) {
 			return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
 		}
@@ -265,7 +267,7 @@ class ChannelController extends Controller
 		try {
 			$output = Artisan::call('import:channels');
 			$log = Artisan::output();
-			return response()->json(['success' => 'Canales importados correctamente', 'log' => $log]);
+			return response()->json(['success' => 'Channels imported successfully', 'log' => $log]);
 		} catch (\Exception $e) {
 			return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
 		}

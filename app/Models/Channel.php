@@ -21,6 +21,7 @@ class Channel extends Model
         'license_type',
         'api_key',
         'url_channel',
+        'pssh',
         'catchup',
         'catchup_days',
         'catchup_source',

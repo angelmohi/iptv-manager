@@ -22,7 +22,7 @@ class Token
         $password = Crypt::decryptString($account->password);
 
         if (!$username || !$password) {
-            throw new TokenException('Credenciales no encontradas o inválidas.');
+            throw new TokenException('Credentials not found or invalid.');
         }
 
         $query = [
@@ -37,7 +37,7 @@ class Token
 
         if ($response->failed()) {
             throw new TokenException(
-                'Error al obtener token desde API externa: HTTP ' .
+                'Error obtaining token from external API: HTTP ' .
                 $response->status()
             );
         }
@@ -45,7 +45,7 @@ class Token
         $data = $response->json();
 
         if (empty($data['deviceId']) || empty($data['cdnToken'])) {
-            throw new TokenException('Respuesta de API incompleta: faltan deviceId o cdnToken.');
+            throw new TokenException('Incomplete API response: missing deviceId or cdnToken.');
         }
 
         $deviceId = $data['deviceId'];

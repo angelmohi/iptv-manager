@@ -32,4 +32,10 @@ return [
     ],
 
     'api_token_url' => env('API_TOKEN_URL'),
+    'api_pssh_url' => env('API_PSSH_URL'),
+    'api_search_url' => env('API_SEARCH_URL'),
+
+    'iptv' => [
+        'token_account' => env('IPTV_TOKEN_ACCOUNT'),
+    ],
 ];

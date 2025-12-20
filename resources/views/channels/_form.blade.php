@@ -34,6 +34,13 @@
 
         <div class="row mt-3">
             <div class="col-12 col-sm-12 col-md-12 form-group">
+                <label for="f-pssh">PSSH</label>
+                <textarea class="form-control" id="f-pssh" name="pssh">{{ $channel->pssh ?? '' }}</textarea>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12 col-sm-12 col-md-12 form-group">
                 <label for="f-api_key">Keys</label>
                 <textarea class="form-control" id="f-api_key" name="api_key">{{ $channel->api_key ?? '' }}</textarea>
             </div>

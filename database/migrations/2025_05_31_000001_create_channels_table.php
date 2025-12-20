@@ -34,6 +34,7 @@ return new class extends Migration
             $table->text('license_type')->nullable();
             $table->text('api_key')->nullable();
             $table->text('url_channel')->nullable();
+            $table->text('pssh')->nullable();
             $table->string('catchup')->nullable();
             $table->string('catchup_days')->nullable();
             $table->text('catchup_source')->nullable();
