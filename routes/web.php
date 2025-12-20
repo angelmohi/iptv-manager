@@ -5,6 +5,7 @@ use App\Http\Controllers\ChannelCategoryController;
 use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ListController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,15 @@ Route::prefix('accounts')->controller(AccountController::class)->group(function(
     Route::post('/', 'store')->name('accounts.store');
     Route::put('/{account}', 'update')->name('accounts.update');
     Route::post('/generate-token/{account}', 'generateToken')->name('accounts.generate-token');
+});
+
+Route::prefix('users')->controller(UserController::class)->group(function() {
+    Route::get('/', 'index')->name('users.index');
+    Route::get('/create', 'create')->name('users.create');
+    Route::get('/edit/{user}', 'edit')->name('users.edit');
+    Route::post('/', 'store')->name('users.store');
+    Route::put('/{user}', 'update')->name('users.update');
+    Route::delete('/{user}', 'destroy')->name('users.destroy');
 });
 
 Route::prefix('lists')->controller(ListController::class)->group(function() {

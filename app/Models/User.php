@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'access_level_id',
     ];
 
     /**
@@ -42,4 +43,14 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function accessLevel()
+    {
+        return $this->belongsTo(UserAccessLevel::class, 'access_level_id');
+    }
+
+    public function isFullAdministrator()
+    {
+        return $this->accessLevel->name === 'Full Administrator';
+    }
 }

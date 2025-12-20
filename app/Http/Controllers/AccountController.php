@@ -23,6 +23,12 @@ class AccountController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware(function ($request, $next) {
+            if (!auth()->user()->isFullAdministrator()) {
+                abort(403);
+            }
+            return $next($request);
+        });
     }
 
     /**

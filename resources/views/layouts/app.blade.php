@@ -78,12 +78,20 @@
                     Canales
                 </a>
             </li>
+            @if(Auth::user()->isFullAdministrator())
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('accounts.index') }}">
                     <i class="nav-icon fas fa-users"></i>
                     Cuentas
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('users.index') }}">
+                    <i class="nav-icon fas fa-user"></i>
+                    Usuarios
+                </a>
+            </li>
+            @endif
         </ul>
     </div>
     @endif
