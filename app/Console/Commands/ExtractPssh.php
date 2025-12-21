@@ -3,13 +3,12 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 use App\Models\Channel;
 use App\Models\Account;
-use SimpleXMLElement;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\Pssh;
 use App\Helpers\SearchKeys;
+use App\Helpers\Lists;
 use Exception;
 
 class ExtractPssh extends Command
@@ -54,10 +53,10 @@ class ExtractPssh extends Command
 
         foreach ($channels as $channel) {
             $url = $channel->url_channel;
-            
+
             try {
                 $pssh = Pssh::getFromUrl($url, (bool) $channel->apply_token ? $token : null);
-                
+
                 if ($pssh && $pssh != $channel->pssh) {
                     $channel->pssh = $pssh;
                     $channel->save();
@@ -83,23 +82,15 @@ class ExtractPssh extends Command
         foreach ($accounts as $account) {
             Lists::generateTivimateList($account);
             Lists::generateOttList($account);
-			Lists::generateCineList($account);
-			Lists::generateSeriesList($account);
-			Lists::generateCineOttList($account);
-			Lists::generateSeriesOttList($account);
+            Lists::generateCineList($account);
+            Lists::generateSeriesList($account);
+            Lists::generateCineOttList($account);
+            Lists::generateSeriesOttList($account);
             Lists::generateKodiList($account);
         }
 
         Log::info("PSSH Extraction: Process completed.");
 
         return 0;
-    }
-
-    /**
-     * Extract PSSH from an MPD URL.
-     */
-    private function fetchPssh($url, $token, $applyToken = false)
-    {
-        return Pssh::getFromUrl($url, $applyToken ? $token : null);
     }
 }

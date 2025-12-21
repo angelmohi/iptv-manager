@@ -109,13 +109,78 @@
         </div>
 
         <div class="row mt-3">
-            <div class="col-12 col-sm-12 col-md-6 form-group">
-                <button type="submit" class="btn btn-outline-primary me-3">Guardar</button>
+            <div class="col-12 col-sm-12 col-md-12 form-group d-flex justify-content-between align-items-center">
+                <div>
+					<button type="submit" class="btn btn-outline-primary me-3">Guardar</button>
+					@if ($editing)
+						<a href="#" id="duplicate-channel" class="btn btn-outline-success me-3">Duplicar</a>
+						<a href="#" id="delete-channel" class="btn btn-outline-danger">Eliminar</a>
+					@endif
+				</div>
                 @if ($editing)
-                    <a href="#" id="duplicate-channel" class="btn btn-outline-success me-3">Duplicar</a>
-                    <a href="#" id="delete-channel" class="btn btn-outline-danger">Eliminar</a>
+                    <button type="button" id="check-keys" class="btn btn-outline-info">Comprobar Keys</button>
                 @endif
             </div>
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    const checkKeysBtn = document.getElementById('check-keys');
+    if (checkKeysBtn) {
+        checkKeysBtn.addEventListener('click', function() {
+            @if($editing)
+            checkKeysBtn.disabled = true;
+            checkKeysBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Comprobando...';
+
+            fetch("{{ route('channels.check-keys', $channel->id) }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                checkKeysBtn.disabled = false;
+                checkKeysBtn.innerHTML = 'Comprobar Keys';
+
+                if (data.success) {
+                    if (data.pssh_updated) {
+                        document.getElementById('f-pssh').value = data.pssh;
+                    }
+                    if (data.keys_updated) {
+                        document.getElementById('f-api_key').value = data.api_key;
+                    }
+                    
+                    swal({
+                        title: 'Resultado',
+                        text: data.message,
+                        type: data.status
+                    });
+                } else {
+                    swal({
+                        title: 'Error',
+                        text: data.message || 'Error al comprobar las keys',
+                        type: 'error'
+                    });
+                }
+            })
+            .catch(error => {
+                checkKeysBtn.disabled = false;
+                checkKeysBtn.innerHTML = 'Comprobar Keys';
+                console.error('Error:', error);
+                swal({
+                    title: 'Error',
+                    text: 'Hubo un problema al procesar la solicitud',
+                    type: 'error'
+                });
+            });
+            @endif
+        });
+    }
+});
+</script>
+@endpush

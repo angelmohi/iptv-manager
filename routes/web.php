@@ -29,7 +29,7 @@ Route::get('/importar-categorias', [ChannelController::class, 'importCategories'
 Route::get('/importar-canales', [ChannelController::class, 'importChannels'])->name('import.channels');
 
 
-Route::prefix('accounts')->controller(AccountController::class)->group(function() {
+Route::prefix('accounts')->controller(AccountController::class)->group(function () {
     Route::get('/', 'index')->name('accounts.index');
     Route::get('/create', 'create')->name('accounts.create');
     Route::get('/edit/{account}', 'edit')->name('accounts.edit');
@@ -38,7 +38,7 @@ Route::prefix('accounts')->controller(AccountController::class)->group(function(
     Route::post('/generate-token/{account}', 'generateToken')->name('accounts.generate-token');
 });
 
-Route::prefix('users')->controller(UserController::class)->group(function() {
+Route::prefix('users')->controller(UserController::class)->group(function () {
     Route::get('/', 'index')->name('users.index');
     Route::get('/create', 'create')->name('users.create');
     Route::get('/edit/{user}', 'edit')->name('users.edit');
@@ -47,18 +47,18 @@ Route::prefix('users')->controller(UserController::class)->group(function() {
     Route::delete('/{user}', 'destroy')->name('users.destroy');
 });
 
-Route::prefix('lists')->controller(ListController::class)->group(function() {
+Route::prefix('lists')->controller(ListController::class)->group(function () {
     Route::post('/update', 'update')->name('lists.update');
     Route::get('/tivimate/{folder}', 'downloadTivimate')->name('lists.download.tivimate');
     Route::get('/ott/{folder}', 'downloadOtt')->name('lists.download.ott');
-	Route::get('/cine/{folder}', 'downloadCine')->name('lists.download.cine');
+    Route::get('/cine/{folder}', 'downloadCine')->name('lists.download.cine');
     Route::get('/series/{folder}', 'downloadSeries')->name('lists.download.series');
-	Route::get('/cineOtt/{folder}', 'downloadCineOtt')->name('lists.download.cineott');
+    Route::get('/cineOtt/{folder}', 'downloadCineOtt')->name('lists.download.cineott');
     Route::get('/seriesOtt/{folder}', 'downloadSeriesOtt')->name('lists.download.seriesott');
     Route::get('/kodi/{folder}', 'downloadKodi')->name('lists.download.kodi');
 });
 
-Route::prefix('channel-categories')->controller(ChannelCategoryController::class)->group(function() {
+Route::prefix('channel-categories')->controller(ChannelCategoryController::class)->group(function () {
     Route::get('/', 'index')->name('channel-categories.index');
     Route::get('/create', 'create')->name('channel-categories.create');
     Route::get('/edit/{category}', 'edit')->name('channel-categories.edit');
@@ -68,7 +68,7 @@ Route::prefix('channel-categories')->controller(ChannelCategoryController::class
     Route::post('/reorder', 'reorder')->name('channel-categories.reorder');
 });
 
-Route::prefix('channels')->controller(ChannelController::class)->group(function() {
+Route::prefix('channels')->controller(ChannelController::class)->group(function () {
     Route::get('/', 'index')->name('channels.index');
     Route::get('/create', 'create')->name('channels.create');
     Route::get('/edit/{channel}', 'edit')->name('channels.edit');
@@ -77,8 +77,7 @@ Route::prefix('channels')->controller(ChannelController::class)->group(function(
     Route::delete('/{channel}', 'destroy')->name('channels.destroy');
     Route::post('/reorder', 'reorder')->name('channels.reorder');
     Route::post('/duplicate/{channel}', 'duplicate')->name('channels.duplicate');
+    Route::post('/check-keys/{channel}', 'checkKeys')->name('channels.check-keys');
 });
 
 Route::get('/logs', [ChannelHistoryController::class, 'index'])->name('logs.index');
-
-

@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Lists;
+use App\Helpers\Pssh;
+use App\Helpers\SearchKeys;
+use App\Models\Account;
 use App\Models\ChannelCategory;
 use App\Models\Channel;
 use Illuminate\Http\JsonResponse;
@@ -25,32 +29,32 @@ class ChannelController extends Controller
     /**
      * Display a listing of the channels.
      */
-    public function index(Request $request) : View|JsonResponse
+    public function index(Request $request): View|JsonResponse
     {
         if ($request->ajax()) {
             return $this->getChannelsData($request);
         }
-        
+
         return view('channels.index');
     }
 
     /**
      * Get channels data for DataTables AJAX request.
      */
-    public function getChannelsData(Request $request) : JsonResponse
+    public function getChannelsData(Request $request): JsonResponse
     {
         $query = Channel::with('category');
-        
+
         // Handle search
         if ($request->has('search') && !empty($request->search['value'])) {
             $searchValue = $request->search['value'];
-            $query->where(function($q) use ($searchValue) {
+            $query->where(function ($q) use ($searchValue) {
                 $q->where('name', 'like', "%{$searchValue}%")
-                  ->orWhere('tvg_id', 'like', "%{$searchValue}%")
-                  ->orWhere('tvg_type', 'like', "%{$searchValue}%")
-                  ->orWhereHas('category', function($q) use ($searchValue) {
-                      $q->where('name', 'like', "%{$searchValue}%");
-                  });
+                    ->orWhere('tvg_id', 'like', "%{$searchValue}%")
+                    ->orWhere('tvg_type', 'like', "%{$searchValue}%")
+                    ->orWhereHas('category', function ($q) use ($searchValue) {
+                        $q->where('name', 'like', "%{$searchValue}%");
+                    });
             });
         }
 
@@ -58,15 +62,15 @@ class ChannelController extends Controller
         if ($request->has('order')) {
             $orderColumn = $request->columns[$request->order[0]['column']]['data'];
             $orderDirection = $request->order[0]['dir'];
-            
+
             switch ($orderColumn) {
                 case 'name':
                     $query->orderBy('name', $orderDirection);
                     break;
                 case 'category':
                     $query->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
-                          ->orderBy('channel_categories.name', $orderDirection)
-                          ->select('channels.*');
+                        ->orderBy('channel_categories.name', $orderDirection)
+                        ->select('channels.*');
                     break;
                 case 'is_active':
                     $query->orderBy('is_active', $orderDirection);
@@ -115,7 +119,7 @@ class ChannelController extends Controller
     /**
      * Show the form for creating a new channel.
      */
-    public function create() : View
+    public function create(): View
     {
         $categories = ChannelCategory::orderBy('order')->get();
         return view('channels.create', compact('categories'));
@@ -124,7 +128,7 @@ class ChannelController extends Controller
     /**
      * Show the form for editing the channel.
      */
-    public function edit(Channel $channel) : View
+    public function edit(Channel $channel): View
     {
         $categories = ChannelCategory::orderBy('order')->get();
         return view('channels.edit', compact('channel', 'categories'));
@@ -133,11 +137,11 @@ class ChannelController extends Controller
     /**
      * Store a new channel.
      */
-    public function store(Request $request) : JsonResponse
+    public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-			'tvg_type' => 'required',
+            'tvg_type' => 'required',
             'category_id' => 'required|exists:channel_categories,id',
             'tvg_id' => 'nullable|string|max:255',
             'logo' => 'required',
@@ -159,18 +163,18 @@ class ChannelController extends Controller
 
         $channel = Channel::create($data);
 
-        flashSuccessMessage('Channel created successfully.');
+        flashSuccessMessage('Canal creado correctamente.');
         return jsonIframeRedirection(route('channels.edit', $channel->id));
     }
 
     /**
      * Update the specified channel.
      */
-    public function update(Request $request, Channel $channel) : JsonResponse
+    public function update(Request $request, Channel $channel): JsonResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-			'tvg_type' => 'required',
+            'tvg_type' => 'required',
             'category_id' => 'required|exists:channel_categories,id',
             'tvg_id' => 'nullable|string|max:255',
             'logo' => 'required',
@@ -190,14 +194,14 @@ class ChannelController extends Controller
 
         $channel->update($data);
 
-        flashSuccessMessage('Channel updated successfully.');
+        flashSuccessMessage('Canal actualizado correctamente.');
         return jsonIframeRedirection(route('channels.edit', $channel->id));
     }
 
     /**
      * Reorder channels.
      */
-    public function reorder(Request $request) : JsonResponse
+    public function reorder(Request $request): JsonResponse
     {
         $data = $request->validate([
             'order'         => 'required|array',
@@ -207,7 +211,7 @@ class ChannelController extends Controller
 
         foreach ($data['order'] as $item) {
             Channel::where('id', $item['id'])
-                   ->update(['order' => $item['order']]);
+                ->update(['order' => $item['order']]);
         }
 
         return response()->json(['status' => 'ok']);
@@ -216,62 +220,142 @@ class ChannelController extends Controller
     /**
      * Duplicate the specified channel.
      */
-    public function duplicate(Channel $channel) : JsonResponse
+    public function duplicate(Channel $channel): JsonResponse
     {
         $newChannel = $channel->replicate();
         $newChannel->name .= ' (Copia)';
         $newChannel->save();
 
-        flashSuccessMessage('Channel duplicated successfully.');
+        flashSuccessMessage('Canal duplicado correctamente.');
         return jsonIframeRedirection(route('channels.edit', $newChannel->id));
     }
 
     /**
      * Remove the specified channel.
      */
-    public function destroy(Channel $channel) : JsonResponse
+    public function destroy(Channel $channel): JsonResponse
     {
         $channel->delete();
 
-        flashSuccessMessage('Channel deleted successfully.');
+        flashSuccessMessage('Canal eliminado correctamente.');
         return jsonIframeRedirection(route('channels.index'));
     }
-	
-	    /**
+
+    /**
      * Upload updated m3u
      */
-	public function uploadM3U(Request $request)
-	{
-		$request->validate(['archivo' => 'required|file']);
+    public function uploadM3U(Request $request)
+    {
+        $request->validate(['archivo' => 'required|file']);
 
-		$file = $request->file('archivo');
-		// Guarda o sobreescribe el archivo con nombre fijo
-		Storage::putFileAs('', $file, 'total_ott.m3u');
+        $file = $request->file('archivo');
+        // Guarda o sobreescribe el archivo con nombre fijo
+        Storage::putFileAs('', $file, 'total_ott.m3u');
 
-		return response()->json(['success' => true]);
-	}
+        return response()->json(['success' => true]);
+    }
 
-	public function importCategories()
-	{
-		try {
-			$output = Artisan::call('import:channel-categories');
-			$log = Artisan::output();
-			return response()->json(['success' => 'Categories imported successfully', 'log' => $log]);
-		} catch (\Exception $e) {
-			return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
-		}
-	}
+    public function importCategories()
+    {
+        try {
+            $output = Artisan::call('import:channel-categories');
+            $log = Artisan::output();
+            return response()->json(['success' => 'Categorías importadas correctamente', 'log' => $log]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
 
-	public function importChannels()
-	{
-		try {
-			$output = Artisan::call('import:channels');
-			$log = Artisan::output();
-			return response()->json(['success' => 'Channels imported successfully', 'log' => $log]);
-		} catch (\Exception $e) {
-			return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
-		}
-	}
+    public function importChannels()
+    {
+        try {
+            $output = Artisan::call('import:channels');
+            $log = Artisan::output();
+            return response()->json(['success' => 'Canales importados correctamente', 'log' => $log]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
 
+    public function checkKeys(Channel $channel): JsonResponse
+    {
+        $username = config('services.iptv.token_account');
+        $account = Account::where('username', $username)->first();
+        $token = $account ? $account->token : null;
 
+        $url = $channel->url_channel;
+        $psshMsg = "No se ha actualizado el PSSH.";
+        $keysMsg = "No se han actualizado las Keys.";
+        $psshUpdated = false;
+        $keysUpdated = false;
+        $psshVal = $channel->pssh;
+        $keysVal = $channel->api_key;
+
+        if (!$url) {
+            return response()->json([
+                'success' => false,
+                'message' => "El canal no tiene una URL de MPD definida."
+            ]);
+        }
+
+        try {
+            $pssh = Pssh::getFromUrl($url, (bool) $channel->apply_token ? $token : null);
+
+            if ($pssh) {
+                if ($pssh != $channel->pssh) {
+                    $psshVal = $pssh;
+                    $psshUpdated = true;
+                    $psshMsg = "PSSH actualizado correctamente.";
+                }
+
+                $keys = SearchKeys::getKeys($pssh);
+                if ($keys && $keys != $channel->api_key) {
+                    $keysVal = $keys;
+                    $keysUpdated = true;
+                    $keysMsg = "Keys actualizadas correctamente.";
+                } elseif (!$keys) {
+                    $keysMsg = "No se han encontrado Keys para este PSSH.";
+                }
+            } else {
+                $psshMsg = "No se ha podido extraer el PSSH del MPD.";
+            }
+
+            if ($psshUpdated || $keysUpdated) {
+                if ($psshUpdated) $channel->pssh = $psshVal;
+                if ($keysUpdated) $channel->api_key = $keysVal;
+                $channel->save();
+
+                $accounts = Account::all();
+                foreach ($accounts as $account) {
+                    Lists::generateTivimateList($account);
+                    Lists::generateOttList($account);
+                    Lists::generateCineList($account);
+                    Lists::generateSeriesList($account);
+                    Lists::generateCineOttList($account);
+                    Lists::generateSeriesOttList($account);
+                    Lists::generateKodiList($account);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => "Error: " . $e->getMessage()
+            ], 500);
+        }
+
+        $status = "info";
+        if ($psshUpdated || $keysUpdated) {
+            $status = "success";
+        }
+
+        return response()->json([
+            'success' => true,
+            'pssh_updated' => $psshUpdated,
+            'keys_updated' => $keysUpdated,
+            'pssh' => $psshVal,
+            'api_key' => $keysVal,
+            'status' => $status,
+            'message' => $psshMsg . " " . $keysMsg
+        ]);
+    }
 }

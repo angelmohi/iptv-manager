@@ -1,17 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<style>
-    #logs-table {
-        table-layout: fixed;
-        width: 100% !important;
-    }
-    #logs-table td {
-        word-wrap: break-word;
-        white-space: normal;
-        overflow: hidden;
-    }
-</style>
 <div class="card mb-4">
     <div class="card-body m-2">
         <div class="d-flex justify-content-between">
@@ -57,15 +46,15 @@ $(document).ready(function() {
             { data: 'channel', name: 'channel' },
             { data: 'pssh', name: 'pssh' },
             { data: 'api_key', name: 'api_key' },
-            { data: 'created_by', name: 'created_by', orderable: false },
+            { data: 'created_by', name: 'created_by' },
             { data: 'created_at', name: 'created_at' }
         ],
         order: [[4, 'desc']],
         autoWidth: false,
         columnDefs: [
             { width: '15%', targets: 0 },
-            { width: '35%', targets: 1 },
-            { width: '25%', targets: 2 },
+            { width: '25%', targets: 1 },
+            { width: '35%', targets: 2 },
             { width: '10%', targets: 3 },
             { width: '15%', targets: 4 }
         ],
