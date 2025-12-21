@@ -14,28 +14,28 @@ class ChannelHistoryController extends Controller
         $this->middleware('auth');
     }
 
-    public function index(Request $request) : View|JsonResponse
+    public function index(Request $request): View|JsonResponse
     {
         if ($request->ajax()) {
             return $this->getLogsData($request);
         }
-        
+
         return view('logs.index');
     }
 
-    private function getLogsData(Request $request) : JsonResponse
+    private function getLogsData(Request $request): JsonResponse
     {
         $query = ChannelHistory::with(['channel', 'user']);
-        
+
         // Handle search
         if ($request->has('search') && !empty($request->search['value'])) {
             $searchValue = $request->search['value'];
-            $query->where(function($q) use ($searchValue) {
-                $q->whereHas('channel', function($q) use ($searchValue) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->whereHas('channel', function ($q) use ($searchValue) {
                     $q->where('name', 'like', "%{$searchValue}%");
                 })
-                ->orWhere('pssh', 'like', "%{$searchValue}%")
-                ->orWhere('api_key', 'like', "%{$searchValue}%");
+                    ->orWhere('pssh', 'like', "%{$searchValue}%")
+                    ->orWhere('api_key', 'like', "%{$searchValue}%");
             });
         }
 
@@ -43,12 +43,12 @@ class ChannelHistoryController extends Controller
         if ($request->has('order')) {
             $orderColumn = $request->columns[$request->order[0]['column']]['data'];
             $orderDirection = $request->order[0]['dir'];
-            
+
             switch ($orderColumn) {
                 case 'channel':
                     $query->join('channels', 'channel_history.channel_id', '=', 'channels.id')
-                          ->orderBy('channels.name', $orderDirection)
-                          ->select('channel_history.*');
+                        ->orderBy('channels.name', $orderDirection)
+                        ->select('channel_history.*');
                     break;
                 case 'created_at':
                     $query->orderBy('created_at', $orderDirection);
@@ -72,9 +72,10 @@ class ChannelHistoryController extends Controller
         foreach ($logs as $log) {
             $data[] = [
                 'channel' => $log->channel->name ?? 'Deleted Channel',
+                'channel_id' => $log->channel_id,
                 'pssh' => $log->pssh,
                 'api_key' => $log->api_key,
-                'created_by' => $log->user->name ?? 'System',
+                'created_by' => $log->user->name ?? 'API',
                 'created_at' => $log->created_at->format('d/m/Y H:i:s'),
             ];
         }
