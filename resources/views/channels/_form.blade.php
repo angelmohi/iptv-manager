@@ -117,7 +117,7 @@
 						<a href="#" id="delete-channel" class="btn btn-outline-danger">Eliminar</a>
 					@endif
 				</div>
-                @if ($editing)
+                @if ($editing && $channel->tvg_type == 'live')
                     <button type="button" id="check-keys" class="btn btn-outline-info">Comprobar Keys</button>
                 @endif
             </div>

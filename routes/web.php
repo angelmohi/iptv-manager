@@ -81,3 +81,6 @@ Route::prefix('channels')->controller(ChannelController::class)->group(function 
 });
 
 Route::get('/logs', [ChannelHistoryController::class, 'index'])->name('logs.index');
+Route::get('/difusion-epg', [\App\Http\Controllers\DifusionEpgController::class, 'index'])->name('difusion.epg');
+Route::get('/difusion-epg/data', [\App\Http\Controllers\DifusionEpgController::class, 'data'])->name('difusion.epg.data');
+Route::post('/difusion-epg/run', [\App\Http\Controllers\DifusionEpgController::class, 'run'])->name('difusion.epg.run');

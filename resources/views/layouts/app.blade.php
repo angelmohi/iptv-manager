@@ -84,6 +84,12 @@
                     Logs
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('difusion.epg') }}">
+                    <i class="nav-icon fas fa-broadcast-tower"></i>
+                    DIFUSION EPG
+                </a>
+            </li>
             @if(Auth::user()->isFullAdministrator())
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('accounts.index') }}">

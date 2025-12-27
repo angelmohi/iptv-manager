@@ -35,6 +35,8 @@ return [
     'api_pssh_url' => env('API_PSSH_URL'),
     'api_search_url' => env('API_SEARCH_URL'),
 
+    'difusion_url' => env('DIFUSION_URL'),
+
     'iptv' => [
         'token_account' => env('IPTV_TOKEN_ACCOUNT'),
     ],
