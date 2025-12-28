@@ -22,16 +22,27 @@ class ChannelCategoryController extends Controller
     /**
      * Display a listing of the categories.
      */
-    public function index() : View
+    public function index(): View
     {
-        $categories = ChannelCategory::orderBy('order')->get();
-        return view('channel-categories.index', compact('categories'));
+        $liveCategories = ChannelCategory::where('type', 'live')
+            ->orderBy('order')
+            ->get();
+
+        $movieCategories = ChannelCategory::where('type', 'movie')
+            ->orderBy('order')
+            ->get();
+
+        $seriesCategories = ChannelCategory::where('type', 'series')
+            ->orderBy('order')
+            ->get();
+
+        return view('channel-categories.index', compact('liveCategories', 'movieCategories', 'seriesCategories'));
     }
 
     /**
      * Show the form for creating a new category.
      */
-    public function create() : View
+    public function create(): View
     {
         return view('channel-categories.create');
     }
@@ -39,7 +50,7 @@ class ChannelCategoryController extends Controller
     /**
      * Show the form for editing the category.
      */
-    public function edit(ChannelCategory $category) : View
+    public function edit(ChannelCategory $category): View
     {
         return view('channel-categories.edit', compact('category'));
     }
@@ -47,10 +58,11 @@ class ChannelCategoryController extends Controller
     /**
      * Store a new category.
      */
-    public function store(Request $request) : JsonResponse
+    public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
+            'type' => 'required|in:live,movie,series',
         ]);
 
         $data['order'] = ChannelCategory::max('order') + 1;
@@ -59,16 +71,16 @@ class ChannelCategoryController extends Controller
 
         flashSuccessMessage('Categoría creada correctamente.');
         return jsonIframeRedirection(route('channel-categories.edit', $category->id));
-        
     }
 
     /**
      * Update the specified category.
      */
-    public function update(Request $request, ChannelCategory $category) : JsonResponse
+    public function update(Request $request, ChannelCategory $category): JsonResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
+            'type' => 'required|in:live,movie,series',
         ]);
 
         $category->update($data);
@@ -80,13 +92,13 @@ class ChannelCategoryController extends Controller
     /**
      * Remove the specified category.
      */
-    public function destroy(ChannelCategory $category) : JsonResponse
+    public function destroy(ChannelCategory $category): JsonResponse
     {
         if ($category->channels()->count() > 0) {
             flashDangerMessage('No se puede eliminar la categoría porque tiene canales asociados.');
             return jsonIframeRedirection(route('channel-categories.edit', $category->id));
         }
-        
+
         $category->delete();
 
         flashSuccessMessage('Categoría eliminada correctamente.');
@@ -96,7 +108,7 @@ class ChannelCategoryController extends Controller
     /**
      * Reorder categories.
      */
-    public function reorder(Request $request) : JsonResponse
+    public function reorder(Request $request): JsonResponse
     {
         $data = $request->validate([
             'order' => 'required|array',

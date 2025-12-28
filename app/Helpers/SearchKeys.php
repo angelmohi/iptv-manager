@@ -39,7 +39,7 @@ class SearchKeys
             $keys = [];
             foreach ($data as $item) {
                 if (!empty($item['KID']) && !empty($item['Key'])) {
-                    $keys[] = "\"{$item['KID']}\":\"{$item['Key']}\"";
+                    $keys[] = $item['KID'] . ':' . $item['Key'];
                 }
             }
 
@@ -47,7 +47,7 @@ class SearchKeys
                 return null;
             }
 
-            return '{' . implode(',', $keys) . '}';
+            return implode(',', $keys);
 
         } catch (Exception $e) {
             return null;

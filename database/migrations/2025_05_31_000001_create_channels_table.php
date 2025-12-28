@@ -14,12 +14,13 @@ return new class extends Migration
         Schema::create('channel_categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('type')->nullable();
             $table->unsignedInteger('order')->default(1);
 
             $table->timestamps();
             $table->softDeletes();
         });
-        
+
         Schema::create('channels', function (Blueprint $table) {
             $table->id();
 

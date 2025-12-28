@@ -45,6 +45,14 @@ class ChannelController extends Controller
     {
         $query = Channel::with('category');
 
+        // Filter by category type if provided
+        if ($request->has('type') && !empty($request->type)) {
+            $type = $request->type;
+            $query->whereHas('category', function ($q) use ($type) {
+                $q->where('type', $type);
+            });
+        }
+
         // Handle search
         if ($request->has('search') && !empty($request->search['value'])) {
             $searchValue = $request->search['value'];

@@ -23,23 +23,94 @@
             </div>
         </div>
         <hr>
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="table-responsive">
-                    <table id="channels-table" class="table table-hover table-striped table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Categoría</th>
-                                <th>Token</th>
-                                <th>Activo</th>
-                                <th>Tipo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Los datos se cargarán por AJAX -->
-                        </tbody>
-                    </table>
+        
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="channelTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="live-tab" data-coreui-toggle="tab" data-coreui-target="#live" type="button" role="tab" aria-controls="live" aria-selected="true">
+                    <i class="fas fa-broadcast-tower me-1"></i> Live
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="movie-tab" data-coreui-toggle="tab" data-coreui-target="#movie" type="button" role="tab" aria-controls="movie" aria-selected="false">
+                    <i class="fas fa-film me-1"></i> Películas
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="series-tab" data-coreui-toggle="tab" data-coreui-target="#series" type="button" role="tab" aria-controls="series" aria-selected="false">
+                    <i class="fas fa-tv me-1"></i> Series
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tabs Content -->
+        <div class="tab-content" id="channelTabsContent">
+            <!-- Live Tab -->
+            <div class="tab-pane fade show active" id="live" role="tabpanel" aria-labelledby="live-tab">
+                <div class="row mt-3">
+                    <div class="col-sm-12">
+                        <div class="table-responsive">
+                            <table id="live-channels-table" class="table table-hover table-striped table-bordered">
+                                <thead>
+                                     <tr>
+                                        <th>Nombre</th>
+                                        <th>Categoría</th>
+                                        <th>Token</th>
+                                        <th>Activo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Los datos se cargarán por AJAX -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Movie Tab -->
+            <div class="tab-pane fade" id="movie" role="tabpanel" aria-labelledby="movie-tab">
+                <div class="row mt-3">
+                    <div class="col-sm-12">
+                        <div class="table-responsive">
+                            <table id="movie-channels-table" class="table table-hover table-striped table-bordered">
+                                <thead>
+                                     <tr>
+                                        <th>Nombre</th>
+                                        <th>Categoría</th>
+                                        <th>Token</th>
+                                        <th>Activo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Los datos se cargarán por AJAX -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Series Tab -->
+            <div class="tab-pane fade" id="series" role="tabpanel" aria-labelledby="series-tab">
+                <div class="row mt-3">
+                    <div class="col-sm-12">
+                        <div class="table-responsive">
+                            <table id="series-channels-table" class="table table-hover table-striped table-bordered">
+                                <thead>
+                                     <tr>
+                                        <th>Nombre</th>
+                                        <th>Categoría</th>
+                                        <th>Token</th>
+                                        <th>Activo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Los datos se cargarán por AJAX -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -69,23 +140,31 @@
   </div>
 </div>
 
+@push('styles')
+<style>
+  .nav-tabs .nav-link {
+    color: #6c757d;
+  }
+  
+  .nav-tabs .nav-link.active {
+    color: #321fdb;
+    font-weight: 600;
+  }
+</style>
+@endpush
 
 @push('scripts')
 <script>
 $(document).ready(function() {
-    $('#channels-table').DataTable({
+    // Common DataTable configuration
+    const commonConfig = {
         processing: true,
         serverSide: true,
-        ajax: {
-            url: '{{ route('channels.index') }}',
-            type: 'GET'
-        },
         columns: [
             { data: 'name', name: 'name' },
             { data: 'category', name: 'category' },
             { data: 'apply_token', name: 'apply_token', orderable: false },
-            { data: 'is_active', name: 'is_active' },
-            { data: 'tvg_type', name: 'tvg_type' }
+            { data: 'is_active', name: 'is_active' }
         ],
         order: [],
         pageLength: 10,
@@ -96,8 +175,7 @@ $(document).ready(function() {
             { width: "auto", targets: 0 }, // Nombre - ancho automático
             { width: "250px", targets: 1 }, // Categoría
             { width: "80px", targets: 2, className: "text-center" }, // Token
-            { width: "80px", targets: 3, className: "text-center" }, // Activo
-            { width: "100px", targets: 4, className: "text-center" } // Tipo
+            { width: "80px", targets: 3, className: "text-center" } // Activo
         ],
         language: {
             processing: "Procesando...",
@@ -127,10 +205,40 @@ $(document).ready(function() {
             $(row).attr('data-href', data.edit_url);
             $(row).attr('data-target', '_blank');
         }
+    };
+
+    // Initialize Live channels table
+    $('#live-channels-table').DataTable({
+        ...commonConfig,
+        ajax: {
+            url: '{{ route('channels.index') }}',
+            type: 'GET',
+            data: { type: 'live' }
+        }
     });
 
-    // Manejar click en las filas para redireccionar
-    $('#channels-table tbody').on('click', 'tr', function() {
+    // Initialize Movie channels table
+    $('#movie-channels-table').DataTable({
+        ...commonConfig,
+        ajax: {
+            url: '{{ route('channels.index') }}',
+            type: 'GET',
+            data: { type: 'movie' }
+        }
+    });
+
+    // Initialize Series channels table
+    $('#series-channels-table').DataTable({
+        ...commonConfig,
+        ajax: {
+            url: '{{ route('channels.index') }}',
+            type: 'GET',
+            data: { type: 'series' }
+        }
+    });
+
+    // Manejar click en las filas para redireccionar (para todas las tablas)
+    $('#live-channels-table tbody, #movie-channels-table tbody, #series-channels-table tbody').on('click', 'tr', function() {
         var href = $(this).attr('data-href');
         var target = $(this).attr('data-target');
         

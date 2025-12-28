@@ -593,11 +593,7 @@ class Lists
             }
             
             if (!empty($channel->api_key)) {
-                // Convert JSON keys to Kodi format (key_id:key)
-                $convertedKey = self::convertJsonKeysToKodi($channel->api_key);
-                if ($convertedKey !== null) {
-                    $kodiLines[] = '#KODIPROP:inputstream.adaptive.drm_legacy=org.w3.clearkey|' . $convertedKey;
-                }
+                $kodiLines[] = '#KODIPROP:inputstream.adaptive.drm_legacy=org.w3.clearkey|' . $channel->api_key;
             }
 
             if (!empty($channel->url_channel)) {
