@@ -53,29 +53,77 @@ class ExtractPssh extends Command
 
         foreach ($channels as $channel) {
             $url = $channel->url_channel;
+            $catchup_url = $channel->catchup_source;
+
+            $psshUpdated = false;
+            $keysUpdated = false;
+            $psshVal = $channel->pssh;
+            $keysVal = $channel->api_key;
+
+            $catchupPsshUpdated = false;
+            $catchupKeysUpdated = false;
+            $catchupPsshVal = $channel->catchup_pssh;
+            $catchupKeysVal = $channel->catchup_api_key;
 
             try {
                 $pssh = Pssh::getFromUrl($url, (bool) $channel->apply_token ? $token : null);
 
                 if ($pssh && $pssh != $channel->pssh) {
-                    $channel->pssh = $pssh;
-                    $channel->save();
+                    $psshVal = $pssh;
+                    $psshUpdated = true;
                     Log::info("PSSH Extraction: Updated channel '{$channel->name}' (ID: {$channel->id}).");
 
                     $keys = SearchKeys::getKeys($pssh);
                     if ($keys) {
-                        $channel->api_key = $keys;
-                        $channel->save();
+                        $keysVal = $keys;
+                        $keysUpdated = true;
                         Log::info("PSSH Extraction: Updated keys for channel '{$channel->name}' (ID: {$channel->id}).");
                     } else {
                         Log::info("PSSH Extraction: No keys found for channel '{$channel->name}' (ID: {$channel->id}).");
                     }
+                }
+
+                if ($psshUpdated || $keysUpdated) {
+                    if ($psshUpdated) $channel->pssh = $psshVal;
+                    if ($keysUpdated) $channel->api_key = $keysVal;
+                    $channel->save();
                 }
             } catch (Exception $e) {
                 Log::error("PSSH Extraction: Error in channel '{$channel->name}' (ID: {$channel->id}): " . $e->getMessage());
             }
 
             sleep(1); // 1 second delay between channels
+
+            if ($catchup_url) {
+                try {
+                    $catchup_pssh = Pssh::getFromUrl($catchup_url, (bool) $channel->apply_token ? $token : null, true);
+
+                    if ($catchup_pssh && $catchup_pssh != $channel->catchup_pssh) {
+                        $catchupPsshVal = $catchup_pssh;
+                        $catchupPsshUpdated = true;
+                        Log::info("PSSH Extraction: Updated catch-up PSSH for channel '{$channel->name}' (ID: {$channel->id}).");
+
+                        $catchup_keys = SearchKeys::getKeys($catchup_pssh);
+                        if ($catchup_keys) {
+                            $catchupKeysVal = $catchup_keys;
+                            $catchupKeysUpdated = true;
+                            Log::info("PSSH Extraction: Updated catch-up keys for channel '{$channel->name}' (ID: {$channel->id}).");
+                        } else {
+                            Log::info("PSSH Extraction: No catch-up keys found for channel '{$channel->name}' (ID: {$channel->id}).");
+                        }
+                    }
+
+                    if ($catchupPsshUpdated || $catchupKeysUpdated) {
+                        if ($catchupPsshUpdated) $channel->catchup_pssh = $catchupPsshVal;
+                        if ($catchupKeysUpdated) $channel->catchup_api_key = $catchupKeysVal;
+                        $channel->save();
+                    }
+                } catch (Exception $e) {
+                    Log::error("PSSH Extraction: Error in catch-up for channel '{$channel->name}' (ID: {$channel->id}): " . $e->getMessage());
+                }
+
+                sleep(1); // 1 second delay between channels
+            }
         }
 
         $accounts = Account::all();

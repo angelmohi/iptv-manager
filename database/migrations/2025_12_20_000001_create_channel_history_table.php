@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('channel_id');
             $table->text('pssh')->nullable();
             $table->text('api_key')->nullable();
+            $table->boolean('is_vod')->default(false);
             $table->unsignedBigInteger('created_by')->nullable();
             
             $table->timestamp('created_at')->nullable();

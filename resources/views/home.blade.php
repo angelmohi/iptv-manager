@@ -2,6 +2,23 @@
 
 @section('content')
 <div class="container">
+    @if(isset($expiredAccounts) && $expiredAccounts->isNotEmpty())
+      <div class="row mb-3">
+        <div class="col-12">
+          <div class="alert alert-danger" role="alert">
+            <strong>Atención:</strong> Hay cuentas con token expirado.
+            <ul class="mb-0 mt-2">
+              @foreach($expiredAccounts as $acc)
+                <li>
+                  <a href="{{ route('accounts.edit', $acc->id) }}">{{ $acc->name }}</a>
+                  — expiró el {{ $acc->token_expires_at->format('d/m/Y H:i') }}
+                </li>
+              @endforeach
+            </ul>
+          </div>
+        </div>
+      </div>
+    @endif
     <div class="row">
 
         <div class="col-12 col-md-6 mb-4">

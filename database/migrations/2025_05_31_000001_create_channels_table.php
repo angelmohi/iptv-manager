@@ -39,6 +39,8 @@ return new class extends Migration
             $table->string('catchup')->nullable();
             $table->string('catchup_days')->nullable();
             $table->text('catchup_source')->nullable();
+            $table->text('catchup_pssh')->nullable();
+            $table->text('catchup_api_key')->nullable();
             $table->unsignedInteger('order')->default(1);
             $table->boolean('is_active')->default(true);
             $table->boolean('apply_token')->default(false);

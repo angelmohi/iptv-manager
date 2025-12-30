@@ -87,11 +87,17 @@ class HomeController extends Controller
             ];
         }
 
+        // Cuentas cuyo token ya expiró
+        $expiredAccounts = Account::whereNotNull('token_expires_at')
+            ->where('token_expires_at', '<', now())
+            ->get(['id', 'name', 'token_expires_at']);
+
         return view('home', [
             'last7'            => $last7,
             'byList'           => $byList,
             'accessDates'      => $accessDates->toArray(),
             'accessDatasets'   => $accessDatasets,
+            'expiredAccounts'  => $expiredAccounts,
         ]);
     }
 }

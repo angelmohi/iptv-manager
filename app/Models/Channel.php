@@ -25,6 +25,8 @@ class Channel extends Model
         'catchup',
         'catchup_days',
         'catchup_source',
+        'catchup_pssh',
+        'catchup_api_key',
         'order',
         'is_active',
         'apply_token',
@@ -42,6 +44,17 @@ class Channel extends Model
                     'channel_id' => $channel->id,
                     'pssh' => $channel->pssh,
                     'api_key' => $channel->api_key,
+                    'is_vod' => false,
+                    'created_by' => auth()->id(),
+                ]);
+            }
+
+            if ($channel->wasChanged(['catchup_pssh', 'catchup_api_key'])) {
+                ChannelHistory::create([
+                    'channel_id' => $channel->id,
+                    'pssh' => $channel->catchup_pssh,
+                    'api_key' => $channel->catchup_api_key,
+                    'is_vod' => true,
                     'created_by' => auth()->id(),
                 ]);
             }

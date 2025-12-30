@@ -108,6 +108,20 @@
                 </div>
             </div>
         </div>
+        <h4 class="mt-3"></h4>
+		<div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">{{ __('Lista para Kodi') }}</div>
+
+                    <div class="card-body">
+                        <p>Enlace de la lista: <br><strong>{{ route('lists.download.kodi', $folder) }}</strong></p>
+
+                        <a href="{{ route('lists.download.kodi', $folder) }}" target="_blank" class="btn btn-outline-primary">Descargar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

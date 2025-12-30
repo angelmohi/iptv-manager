@@ -162,6 +162,8 @@ class ChannelController extends Controller
             'catchup' => 'nullable',
             'catchup_days' => 'nullable',
             'catchup_source' => 'nullable',
+            'catchup_pssh' => 'nullable',
+            'catchup_api_key' => 'nullable',
             'is_active' => 'required|boolean',
             'apply_token' => 'required|boolean',
             'parental_control' => 'required|boolean',
@@ -195,6 +197,8 @@ class ChannelController extends Controller
             'catchup' => 'nullable',
             'catchup_days' => 'nullable',
             'catchup_source' => 'nullable',
+            'catchup_pssh' => 'nullable',
+            'catchup_api_key' => 'nullable',
             'is_active' => 'required|boolean',
             'apply_token' => 'required|boolean',
             'parental_control' => 'required|boolean',
@@ -364,6 +368,91 @@ class ChannelController extends Controller
             'api_key' => $keysVal,
             'status' => $status,
             'message' => $psshMsg . " " . $keysMsg
+        ]);
+    }
+
+    /**
+     * Check and update only catchup PSSH and keys for a channel.
+     */
+    public function checkCatchupKeys(Channel $channel): JsonResponse
+    {
+        $username = config('services.iptv.token_account');
+        $account = Account::where('username', $username)->first();
+        $token = $account ? $account->token : null;
+
+        $catchupUrl = $channel->catchup_source;
+        $catchupPsshMsg = "No se ha actualizado el catchup PSSH.";
+        $catchupKeysMsg = "No se han actualizado las catchup Keys.";
+        $catchupPsshUpdated = false;
+        $catchupKeysUpdated = false;
+        $catchupPsshVal = $channel->catchup_pssh;
+        $catchupKeysVal = $channel->catchup_api_key;
+
+        if (!$catchupUrl) {
+            return response()->json([
+                'success' => false,
+                'message' => "El canal no tiene una URL de catchup definida."
+            ]);
+        }
+
+        try {
+            $catchupPssh = Pssh::getFromUrl($catchupUrl, (bool) $channel->apply_token ? $token : null, true);
+
+            if ($catchupPssh) {
+                if ($catchupPssh != $channel->catchup_pssh) {
+                    $catchupPsshVal = $catchupPssh;
+                    $catchupPsshUpdated = true;
+                    $catchupPsshMsg = "Catchup PSSH actualizado correctamente.";
+                }
+
+                $catchupKeys = SearchKeys::getKeys($catchupPssh);
+                if ($catchupKeys && $catchupKeys != $channel->catchup_api_key) {
+                    $catchupKeysVal = $catchupKeys;
+                    $catchupKeysUpdated = true;
+                    $catchupKeysMsg = "Catchup Keys actualizadas correctamente.";
+                } elseif (!$catchupKeys) {
+                    $catchupKeysMsg = "No se han encontrado Keys para este catchup PSSH.";
+                }
+            } else {
+                $catchupPsshMsg = "No se ha podido extraer el catchup PSSH del MPD.";
+            }
+
+            if ($catchupPsshUpdated || $catchupKeysUpdated) {
+                if ($catchupPsshUpdated) $channel->catchup_pssh = $catchupPsshVal;
+                if ($catchupKeysUpdated) $channel->catchup_api_key = $catchupKeysVal;
+                $channel->save();
+
+                $accounts = Account::all();
+                foreach ($accounts as $account) {
+                    Lists::generateTivimateList($account);
+                    Lists::generateOttList($account);
+                    Lists::generateCineList($account);
+                    Lists::generateSeriesList($account);
+                    Lists::generateCineOttList($account);
+                    Lists::generateSeriesOttList($account);
+                    Lists::generateKodiList($account);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => "Error: " . $e->getMessage()
+            ], 500);
+        }
+
+        $status = "info";
+        if ($catchupPsshUpdated || $catchupKeysUpdated) {
+            $status = "success";
+        }
+
+        return response()->json([
+            'success' => true,
+            'catchup_pssh_updated' => $catchupPsshUpdated,
+            'catchup_keys_updated' => $catchupKeysUpdated,
+            'catchup_pssh' => $catchupPsshVal,
+            'catchup_api_key' => $catchupKeysVal,
+            'status' => $status,
+            'message' => $catchupPsshMsg . " " . $catchupKeysMsg
         ]);
     }
 }

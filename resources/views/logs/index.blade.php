@@ -121,7 +121,7 @@ function renderLogs(logs) {
                             <div>
                                 <h5 class="card-title fw-bold mb-0">
                                     <a href="${editUrl}" target="_blank" class="text-primary text-decoration-none hover-underline">
-                                        ${log.channel} <i class="fas fa-external-link-alt ms-1 small" style="font-size: 0.75rem;"></i>
+                                        ${log.channel} ${log.is_vod == 1 ? '(VOD)' : ''} <i class="fas fa-external-link-alt ms-1 small" style="font-size: 0.75rem;"></i>
                                     </a>
                                 </h5>
                                 <small class="text-muted">${log.created_at}</small>

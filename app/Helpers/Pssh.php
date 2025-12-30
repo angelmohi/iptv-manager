@@ -14,7 +14,7 @@ class Pssh
      * @param string|null $token
      * @return string|null
      */
-    public static function getFromUrl(string $mpdUrl, ?string $token = null): ?string
+    public static function getFromUrl(string $mpdUrl, ?string $token = null, ?bool $isVod = false): ?string
     {
         $apiPsshUrl = config('services.api_pssh_url');
 
@@ -29,6 +29,10 @@ class Pssh
 
             if ($token) {
                 $params['token'] = $token;
+            }
+
+            if ($isVod !== null) {
+                $params['vod'] = $isVod ? '1' : '0';
             }
 
             $response = Http::timeout(30)->get($apiPsshUrl, $params);

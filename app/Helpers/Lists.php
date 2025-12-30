@@ -86,7 +86,11 @@ class Lists
                 $tivimateLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
             if (!empty($channel->api_key)) {
-                $tivimateLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $channel->api_key;
+                $license = $channel->api_key;
+                if (!empty($channel->catchup_api_key)) {
+                    $license .= ',' . $channel->catchup_api_key;
+                }
+                $tivimateLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
             }
             if ($channel->apply_token) {
                 $tivimateLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
@@ -180,7 +184,11 @@ class Lists
                 $ottLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
             if (!empty($channel->api_key)) {
-                $ottLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $channel->api_key;
+                $license = $channel->api_key;
+                if (!empty($channel->catchup_api_key)) {
+                    $license .= ',' . $channel->catchup_api_key;
+                }
+                $ottLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
             }
             if ($channel->apply_token) {
                 $ottLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
@@ -253,7 +261,11 @@ class Lists
                 $cineLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
             if (!empty($channel->api_key)) {
-                $cineLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $channel->api_key;
+                $license = $channel->api_key;
+                if (!empty($channel->catchup_api_key)) {
+                    $license .= ',' . $channel->catchup_api_key;
+                }
+                $cineLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
             }
             if ($channel->apply_token) {
                 $cineLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
@@ -328,7 +340,11 @@ class Lists
                 $cineOttLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
             if (!empty($channel->api_key)) {
-                $cineOttLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $channel->api_key;
+                $license = $channel->api_key;
+                if (!empty($channel->catchup_api_key)) {
+                    $license .= ',' . $channel->catchup_api_key;
+                }
+                $cineOttLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
             }
             if ($channel->apply_token) {
                 $cineOttLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
@@ -404,7 +420,11 @@ class Lists
                 $seriesLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
             if (!empty($channel->api_key)) {
-                $seriesLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $channel->api_key;
+                $license = $channel->api_key;
+                if (!empty($channel->catchup_api_key)) {
+                    $license .= ',' . $channel->catchup_api_key;
+                }
+                $seriesLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
             }
             if ($channel->apply_token) {
                 $seriesLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
@@ -482,7 +502,11 @@ class Lists
                 $seriesOttLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
             if (!empty($channel->api_key)) {
-                $seriesOttLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $channel->api_key;
+                $license = $channel->api_key;
+                if (!empty($channel->catchup_api_key)) {
+                    $license .= ',' . $channel->catchup_api_key;
+                }
+                $seriesOttLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
             }
             if ($channel->apply_token) {
                 $seriesOttLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
@@ -551,9 +575,9 @@ class Lists
                 $extinf .= ' catchup-type="' . $channel->catchup . '"';
             }
             if (!empty($channel->catchup_source) && $channel->apply_token) {
-                $extinf .= ' catchup-source="' . $channel->catchup_source . '?device_profile=DASH_TV_WIDEVINE&start_time={Y}-{m}-{d}T${start:H:M:S}Z&end_time={Y}-{m}-{d}T${end:H:M:S}Z"';
+                $extinf .= ' catchup-source="' . $channel->catchup_source . '?device_profile=DASH_TV_WIDEVINE&start_time={utc:Y-m-dTH:M:S}Z&end_time=${end:Y-m-dTH:M:S}Z"';
             } else if (!empty($channel->catchup_source)) {
-                $extinf .= ' catchup-source="' . $channel->catchup_source . '?device_profile=DASH_TV_WIDEVINE&start_time={Y}-{m}-{d}T${start:H:M:S}Z&end_time={Y}-{m}-{d}T${end:H:M:S}Z"';
+                $extinf .= ' catchup-source="' . $channel->catchup_source . '?device_profile=DASH_TV_WIDEVINE&start_time={utc:Y-m-dTH:M:S}Z&end_time=${end:Y-m-dTH:M:S}Z"';
             }
             if (!empty($channel->catchup_correction)) {
                 $extinf .= ' catchup-correction="' . $channel->catchup_correction . '"';
@@ -593,7 +617,11 @@ class Lists
             }
             
             if (!empty($channel->api_key)) {
-                $kodiLines[] = '#KODIPROP:inputstream.adaptive.drm_legacy=org.w3.clearkey|' . $channel->api_key;
+                $drm = $channel->api_key;
+                if (!empty($channel->catchup_api_key)) {
+                    $drm .= ',' . $channel->catchup_api_key;
+                }
+                $kodiLines[] = '#KODIPROP:inputstream.adaptive.drm_legacy=org.w3.clearkey|' . $drm;
             }
 
             if (!empty($channel->url_channel)) {

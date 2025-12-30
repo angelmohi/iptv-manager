@@ -12,6 +12,7 @@ class ChannelHistory extends Model
         'channel_id',
         'pssh',
         'api_key',
+        'is_vod',
         'created_by',
     ];
 

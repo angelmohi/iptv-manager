@@ -90,21 +90,35 @@
         </div>
 
         <div class="row mt-3">
-            <div class="col-12 col-sm-12 col-md-3 form-group">
+            <div class="col-12 col-sm-12 col-md-12 form-group">
+                <label for="f-catchup-pssh">Catchup PSSH</label>
+                <textarea class="form-control" id="f-catchup-pssh" name="catchup_pssh">{{ $channel->catchup_pssh ?? '' }}</textarea>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12 col-sm-12 col-md-12 form-group">
+                <label for="f-catchup_api_key">Catchup Keys</label>
+                <textarea class="form-control" id="f-catchup_api_key" name="catchup_api_key">{{ $channel->catchup_api_key ?? '' }}</textarea>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12 col-sm-12 col-md-4 form-group">
                 <label for="f-is_active">Activo</label>
                 <select class="form-control" id="f-is_active" name="is_active">
                     <option value="1" {{ (isset($channel) && $channel->is_active) ? 'selected' : '' }}>Sí</option>
                     <option value="0" {{ (isset($channel) && !$channel->is_active) ? 'selected' : '' }}>No</option>
                 </select>
             </div>
-            <div class="col-12 col-sm-12 col-md-3 form-group">
+            <div class="col-12 col-sm-12 col-md-4 form-group">
                 <label for="f-apply_token">Token</label>
                 <select class="form-control" id="f-apply_token" name="apply_token">
                     <option value="1" {{ (isset($channel) && $channel->apply_token) ? 'selected' : '' }}>Sí</option>
                     <option value="0" {{ (isset($channel) && !$channel->apply_token) ? 'selected' : '' }}>No</option>
                 </select>
             </div>
-            <div class="col-12 col-sm-12 col-md-3 form-group">
+            <div class="col-12 col-sm-12 col-md-4 form-group">
                 <label for="f-parental_control">Control Parental</label>
                 <select class="form-control" id="f-parental_control" name="parental_control">
                     <option value="1" {{ (isset($channel) && $channel->parental_control) ? 'selected' : '' }}>Sí</option>
@@ -123,7 +137,10 @@
 					@endif
 				</div>
                 @if ($editing && $channel->tvg_type == 'live')
-                    <button type="button" id="check-keys" class="btn btn-outline-info">Comprobar Keys</button>
+                    <div class="d-flex ms-auto gap-2">
+                        <button type="button" id="check-keys" class="btn btn-outline-info">Comprobar Keys</button>
+                        <button type="button" id="check-catchup-keys" class="btn btn-outline-info">Comprobar Catchup Keys</button>
+                    </div>
                 @endif
             </div>
         </div>
@@ -276,6 +293,60 @@ $(document).ready(function() {
             .catch(error => {
                 checkKeysBtn.disabled = false;
                 checkKeysBtn.innerHTML = 'Comprobar Keys';
+                console.error('Error:', error);
+                swal({
+                    title: 'Error',
+                    text: 'Hubo un problema al procesar la solicitud',
+                    type: 'error'
+                });
+            });
+            @endif
+        });
+    }
+
+    const checkCatchupBtn = document.getElementById('check-catchup-keys');
+    if (checkCatchupBtn) {
+        checkCatchupBtn.addEventListener('click', function() {
+            @if($editing)
+            checkCatchupBtn.disabled = true;
+            checkCatchupBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Comprobando...';
+
+            fetch("{{ route('channels.check-catchup-keys', $channel->id) }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                checkCatchupBtn.disabled = false;
+                checkCatchupBtn.innerHTML = 'Comprobar Catchup Keys';
+
+                if (data.success) {
+                    if (data.catchup_pssh_updated) {
+                        document.getElementById('f-catchup-pssh').value = data.catchup_pssh;
+                    }
+                    if (data.catchup_keys_updated) {
+                        document.getElementById('f-catchup_api_key').value = data.catchup_api_key;
+                    }
+
+                    swal({
+                        title: 'Resultado',
+                        text: data.message,
+                        type: data.status
+                    });
+                } else {
+                    swal({
+                        title: 'Error',
+                        text: data.message || 'Error al comprobar las catchup keys',
+                        type: 'error'
+                    });
+                }
+            })
+            .catch(error => {
+                checkCatchupBtn.disabled = false;
+                checkCatchupBtn.innerHTML = 'Comprobar Catchup Keys';
                 console.error('Error:', error);
                 swal({
                     title: 'Error',

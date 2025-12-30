@@ -75,6 +75,7 @@ class ChannelHistoryController extends Controller
                 'channel_id' => $log->channel_id,
                 'pssh' => $log->pssh,
                 'api_key' => $log->api_key,
+                'is_vod' => $log->is_vod,
                 'created_by' => $log->user->name ?? 'API',
                 'created_at' => $log->created_at->format('d/m/Y H:i:s'),
             ];

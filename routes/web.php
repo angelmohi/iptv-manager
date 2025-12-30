@@ -78,6 +78,7 @@ Route::prefix('channels')->controller(ChannelController::class)->group(function 
     Route::post('/reorder', 'reorder')->name('channels.reorder');
     Route::post('/duplicate/{channel}', 'duplicate')->name('channels.duplicate');
     Route::post('/check-keys/{channel}', 'checkKeys')->name('channels.check-keys');
+    Route::post('/check-catchup-keys/{channel}', 'checkCatchupKeys')->name('channels.check-catchup-keys');
 });
 
 Route::get('/logs', [ChannelHistoryController::class, 'index'])->name('logs.index');
