@@ -42,7 +42,7 @@ class Lists
             ->get();
 
         // Generate list for Tivimate
-        $tivimateLines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_US1.xml.gz, https://github.com/HelmerLuzo/PlutoTV_HL/raw/refs/heads/main/epg/es.xml.gz, https://github.com/HelmerLuzo/RakutenTV_HL/raw/refs/heads/main/epg/RakutenTV.xml.gz, https://raw.github.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/es.xml.gz"'];
+        $tivimateLines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://github.com/HelmerLuzo/PlutoTV_HL/raw/refs/heads/main/epg/es.xml.gz, https://github.com/HelmerLuzo/RakutenTV_HL/raw/refs/heads/main/epg/RakutenTV.xml.gz, https://raw.github.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/es.xml.gz"'];
         $tivimateLines[] = '';
 
         foreach ($channels as $channel) {
@@ -142,7 +142,7 @@ class Lists
             ->get();
 
         // Generate list for OTT
-        $ottLines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_US1.xml.gz, https://github.com/HelmerLuzo/PlutoTV_HL/raw/refs/heads/main/epg/es.xml.gz, https://github.com/HelmerLuzo/RakutenTV_HL/raw/refs/heads/main/epg/RakutenTV.xml.gz, https://raw.github.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/es.xml.gz"'];
+        $ottLines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://github.com/HelmerLuzo/PlutoTV_HL/raw/refs/heads/main/epg/es.xml.gz, https://github.com/HelmerLuzo/RakutenTV_HL/raw/refs/heads/main/epg/RakutenTV.xml.gz, https://raw.github.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/es.xml.gz"'];
 
         $ottLines[] = '';
         foreach ($channels as $channel) {
@@ -183,12 +183,35 @@ class Lists
             if (!empty($channel->license_type)) {
                 $ottLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
-            if (!empty($channel->api_key)) {
-                $license = $channel->api_key;
-                if (!empty($channel->catchup_api_key)) {
-                    $license .= ',' . $channel->catchup_api_key;
+            if (!empty($channel->api_key) || !empty($channel->catchup_api_key)) {
+                $licenseJson = null;
+
+                // If api_key already looks like JSON, use it as-is
+                if (!empty($channel->api_key) && is_string($channel->api_key) && trim($channel->api_key)[0] === '{') {
+                    $licenseJson = $channel->api_key;
+                } else {
+                    $merged = [];
+                    if (!empty($channel->api_key)) {
+                        $parsed = self::parseColonPairs($channel->api_key);
+                        if (!empty($parsed)) {
+                            $merged = array_merge($merged, $parsed);
+                        }
+                    }
+                    if (!empty($channel->catchup_api_key)) {
+                        $parsed = self::parseColonPairs($channel->catchup_api_key);
+                        if (!empty($parsed)) {
+                            $merged = array_merge($merged, $parsed);
+                        }
+                    }
+
+                    if (!empty($merged)) {
+                        $licenseJson = json_encode($merged, JSON_UNESCAPED_SLASHES);
+                    }
                 }
-                $ottLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+
+                if (!empty($licenseJson)) {
+                    $ottLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $licenseJson;
+                }
             }
             if ($channel->apply_token) {
                 $ottLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
@@ -556,7 +579,7 @@ class Lists
             ->get();
 
         // Generate list for Kodi
-        $kodiLines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_US1.xml.gz, https://github.com/HelmerLuzo/PlutoTV_HL/raw/refs/heads/main/epg/es.xml.gz, https://github.com/HelmerLuzo/RakutenTV_HL/raw/refs/heads/main/epg/RakutenTV.xml.gz, https://raw.github.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/es.xml.gz"'];
+        $kodiLines = ['#EXTM3U url-tvg="https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiatv_sincolor.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz, https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz, https://github.com/HelmerLuzo/PlutoTV_HL/raw/refs/heads/main/epg/es.xml.gz, https://github.com/HelmerLuzo/RakutenTV_HL/raw/refs/heads/main/epg/RakutenTV.xml.gz, https://raw.github.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/es.xml.gz"'];
         $kodiLines[] = '';
 
         foreach ($channels as $channel) {
@@ -713,5 +736,33 @@ class Lists
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    /**
+     * Parse a string with format "kid:key,kid2:key2" into assoc array
+     *
+     * @param string $str
+     * @return array|null
+     */
+    private static function parseColonPairs(string $str): ?array
+    {
+        $result = [];
+
+        $parts = array_filter(array_map('trim', explode(',', $str)), function ($v) {
+            return $v !== '';
+        });
+
+        foreach ($parts as $part) {
+            $pair = explode(':', $part, 2);
+            if (count($pair) === 2) {
+                $k = trim($pair[0]);
+                $v = trim($pair[1]);
+                if ($k !== '' && $v !== '') {
+                    $result[$k] = $v;
+                }
+            }
+        }
+
+        return empty($result) ? null : $result;
     }
 }
