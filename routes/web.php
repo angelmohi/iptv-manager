@@ -53,8 +53,12 @@ Route::prefix('lists')->controller(ListController::class)->group(function () {
     Route::get('/ott/{folder}', 'downloadOtt')->name('lists.download.ott');
     Route::get('/cine/{folder}', 'downloadCine')->name('lists.download.cine');
     Route::get('/series/{folder}', 'downloadSeries')->name('lists.download.series');
+	Route::get('/cinePremium/{folder}', 'downloadCinePremium')->name('lists.download.cinepremium');
+    Route::get('/seriesPremium/{folder}', 'downloadSeriesPremium')->name('lists.download.seriespremium');
     Route::get('/cineOtt/{folder}', 'downloadCineOtt')->name('lists.download.cineott');
     Route::get('/seriesOtt/{folder}', 'downloadSeriesOtt')->name('lists.download.seriesott');
+	Route::get('/cineOttPremium/{folder}', 'downloadCineOttPremium')->name('lists.download.cineottPremium');
+    Route::get('/seriesOttPremium/{folder}', 'downloadSeriesOttPremium')->name('lists.download.seriesottPremium');
     Route::get('/kodi/{folder}', 'downloadKodi')->name('lists.download.kodi');
 });
 

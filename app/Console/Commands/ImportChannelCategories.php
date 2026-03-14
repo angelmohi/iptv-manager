@@ -46,76 +46,98 @@ class ImportChannelCategories extends Command
             return 1;
         }
 
-        $this->info("Processing file: {$filePath}");
+        // ...
 
-        $categories = [];
+		$this->info("Processing file: {$filePath}");
 
-        while (! feof($handle)) {
-            $line = fgets($handle);
-            if ($line === false) {
-                continue;
-            }
+		$categories = []; // ['nombre' => ['name' => ..., 'type' => ...]]
 
-            // We only care about lines containing #EXTINF
-            // (although we could apply the regex directly without this check, it's more efficient this way)
-            if (stripos($line, '#EXTINF') === false) {
-                continue;
-            }
+		while (!feof($handle)) {
+			$line = fgets($handle);
+			if ($line === false) {
+				continue;
+			}
 
-            // Use a regular expression to capture the value of group-title="..."
-            // The syntax looks for group-title="(...)"
-            if (preg_match('/group-title="([^"]+)"/i', $line, $matches)) {
-                $groupTitle = trim($matches[1]);
+			// Solo líneas #EXTINF
+			if (stripos($line, '#EXTINF') === false) {
+				continue;
+			}
 
-                // Ignore if it's empty
-                if (strlen($groupTitle) === 0) {
-                    continue;
-                }
+			// group-title="..."
+			if (!preg_match('/group-title="([^"]+)"/i', $line, $mGroup)) {
+				continue;
+			}
 
-                // If it's not already in our temporary array, add it.
-                // This prevents processing internal duplicates in the same file.
-                if (! in_array($groupTitle, $categories, true)) {
-                    $categories[] = $groupTitle;
-                }
-            }
-        }
+			$groupTitle = trim($mGroup[1]);
+			if ($groupTitle === '') {
+				continue;
+			}
 
-        fclose($handle);
+			// tvg-type="live|movie|series"
+			$type = null;
+			if (preg_match('/tvg-type="([^"]+)"/i', $line, $mType)) {
+				$rawType = strtolower(trim($mType[1]));
+				if (in_array($rawType, ['live', 'movie', 'series'], true)) {
+					$type = $rawType;
+				}
+			}
 
-        $this->info('Categories found in file: ' . count($categories));
+			if (!isset($categories[$groupTitle])) {
+				$categories[$groupTitle] = [
+					'name' => $groupTitle,
+					'type' => $type,
+				];
+			} else {
+				// Si ya teníamos la categoría sin tipo y ahora sí, lo rellenamos
+				if ($categories[$groupTitle]['type'] === null && $type !== null) {
+					$categories[$groupTitle]['type'] = $type;
+				}
+			}
+		}
 
-        // Now, for each unique category in the array, insert it into the DB
-        // only if it doesn't already exist (to avoid duplicates).
-        // We can use firstOrCreate to simplify.
-        $insertCount = 0;
-        DB::beginTransaction();
-        try {
-            foreach ($categories as $catName) {
-                // You can adjust the 'order' value as needed. Here we leave it at 1 by default.
-                $categoria = ChannelCategory::firstOrCreate(
-                    ['name' => $catName],
-                    ['order' => 1]
-                );
+		fclose($handle);
 
-                // If it was just created (didn't exist), increment the counter
-                if ($categoria->wasRecentlyCreated) {
-                    $insertCount++;
-                    $this->info("Created category: {$catName}");
-                } else {
-                    $this->line("Category already exists: {$catName} (skipped)");
-                }
-            }
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            // An error occurred while saving to the DB
-            $this->error("Error saving to the DB: " . $e->getMessage());
-            return 1;
-        }
+		$this->info('Categories found in file: ' . count($categories));
 
-        // Process finished. New categories inserted: {$insertCount}
-        $this->info("Process completed. New categories inserted: {$insertCount}");
+		$insertCount = 0;
+		DB::beginTransaction();
+		try {
+			foreach ($categories as $cat) {
+				$catName = $cat['name'];
+				$catType = $cat['type'];
 
-        return 0; // Success
+				$categoria = ChannelCategory::firstOrCreate(
+					['name' => $catName],
+					[
+						'order' => 1,
+						'type'  => $catType,   // ← aquí rellenamos el type
+					]
+				);
+
+				// Si ya existía pero ahora tenemos un type nuevo, lo actualizamos
+				if (!$categoria->wasRecentlyCreated && $catType !== null && $categoria->type !== $catType) {
+					$categoria->type = $catType;
+					$categoria->save();
+				}
+
+				if ($categoria->wasRecentlyCreated) {
+					$insertCount++;
+					$this->info("Created category: {$catName} (type={$catType})");
+				} else {
+					$this->line("Category already exists: {$catName} (type={$categoria->type})");
+				}
+			}
+
+			DB::commit();
+		} catch (\Exception $e) {
+			DB::rollBack();
+			$this->error("Error saving to the DB: " . $e->getMessage());
+			return 1;
+		}
+
+		$this->info("Process completed. New categories inserted: {$insertCount}");
+
+		return 0;
+
     }
 }
