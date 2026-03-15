@@ -20,7 +20,7 @@ class ListController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth')->except(['downloadTivimate', 'downloadOtt', 'downloadCine', 'downloadSeries', 'downloadCineOtt', 'downloadSeriesOtt', 'downloadKodi']);
+        $this->middleware('auth')->except(['downloadTivimate', 'downloadOtt', 'downloadCine', 'downloadCinepremium', 'downloadSeries', 'downloadSeriespremium', 'downloadCineOtt', 'downloadCineOttpremium', 'downloadSeriesOtt', 'downloadSeriesOtt', 'downloadKodi']);
     }
 
     private function logDownloadAccess(?Account $account, string $listName): void
@@ -73,12 +73,12 @@ class ListController extends Controller
             Lists::generateOttList($account);
 			Lists::generateCineList($account);
 			Lists::generateSeriesList($account);
-			Lists::generateCinePremiumList($account);
-			Lists::generateSeriesPremiumList($account);
+			Lists::generateCinepremiumList($account);
+			Lists::generateSeriespremiumList($account);
 			Lists::generateCineOttList($account);
 			Lists::generateSeriesOttList($account);
-			Lists::generateCineOttPremiumList($account);
-			Lists::generateSeriesOttPremiumList($account);
+			Lists::generateCineOttpremiumList($account);
+			Lists::generateSeriesOttpremiumList($account);
             Lists::generateKodiList($account);
         }
 
@@ -170,19 +170,19 @@ class ListController extends Controller
         }, $fileName, $headers);
     }
 	
-	public function downloadCinePremium(string $folder): StreamedResponse
+	public function downloadCinepremium(string $folder): StreamedResponse
     {
-        $filePath = 'cinePremium.m3u';
+        $filePath = 'cinepremium.m3u';
 
         if (!Storage::exists("{$folder}/{$filePath}")) {
-            abort(404, 'El archivo cinePremium.m3u no se encontró.');
+            abort(404, 'El archivo cinepremium.m3u no se encontró.');
         }
 
         $account = Account::where('folder', $folder)->first();
         $this->logDownloadAccess($account, 'Tivimate');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
-        $fileName = 'cinePremium.m3u';
+        $fileName = 'cinepremium.m3u';
         $mimeType = 'audio/x-mpegurl';
 
         $headers = [
@@ -223,19 +223,19 @@ class ListController extends Controller
         }, $fileName, $headers);
     }
 	
-    public function downloadCineOttPremium(string $folder): StreamedResponse
+    public function downloadCineOttpremium(string $folder): StreamedResponse
     {
-        $filePath = 'cineOttPremium.m3u';
+        $filePath = 'cineOttpremium.m3u';
 
         if (!Storage::exists("{$folder}/{$filePath}")) {
-            abort(404, 'El archivo cineOttPremium.m3u no se encontró.');
+            abort(404, 'El archivo cineOttpremium.m3u no se encontró.');
         }
 
         $account = Account::where('folder', $folder)->first();
         $this->logDownloadAccess($account, 'OTT');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
-        $fileName = 'cineOttPremium.m3u';
+        $fileName = 'cineOttpremium.m3u';
         $mimeType = 'audio/x-mpegurl';
 
         $headers = [
@@ -276,19 +276,19 @@ class ListController extends Controller
         }, $fileName, $headers);
     }
 	
-	public function downloadSeriesPremium(string $folder): StreamedResponse
+	public function downloadSeriespremium(string $folder): StreamedResponse
     {
-        $filePath = 'seriesPremium.m3u';
+        $filePath = 'seriespremium.m3u';
 
         if (!Storage::exists("{$folder}/{$filePath}")) {
-            abort(404, 'El archivo seriesPremium.m3u no se encontró.');
+            abort(404, 'El archivo seriespremium.m3u no se encontró.');
         }
 
         $account = Account::where('folder', $folder)->first();
         $this->logDownloadAccess($account, 'Tivimate');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
-        $fileName = 'seriesPremium.m3u';
+        $fileName = 'seriespremium.m3u';
         $mimeType = 'audio/x-mpegurl';
 
         $headers = [
@@ -329,12 +329,12 @@ class ListController extends Controller
         }, $fileName, $headers);
     }
 	
-    public function downloadSeriesOttPremium(string $folder): StreamedResponse
+    public function downloadSeriesOttpremium(string $folder): StreamedResponse
     {
-        $filePath = 'seriesOttPremium.m3u';
+        $filePath = 'seriesOttpremium.m3u';
 
         if (!Storage::exists("{$folder}/{$filePath}")) {
-            abort(404, 'El archivo seriesOttPremium.m3u no se encontró.');
+            abort(404, 'El archivo seriesOttpremium.m3u no se encontró.');
         }
 
         $account = Account::where('folder', $folder)->first();

@@ -138,23 +138,23 @@
 		<div class="row">
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-header">{{ __('Lista de cine Premium ott') }}</div>
+                    <div class="card-header">{{ __('Lista de cine premium ott') }}</div>
 
                     <div class="card-body">
-                        <p>Enlace de la lista: <br><strong>{{ route('lists.download.cineottPremium', $folder) }}</strong></p>
+                        <p>Enlace de la lista: <br><strong>{{ route('lists.download.cineottpremium', $folder) }}</strong></p>
 
-                        <a href="{{ route('lists.download.cineottPremium', $folder) }}" target="_blank" class="btn btn-outline-primary">Descargar</a>
+                        <a href="{{ route('lists.download.cineottpremium', $folder) }}" target="_blank" class="btn btn-outline-primary">Descargar</a>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-header">{{ __('Lista de series ott Premium') }}</div>
+                    <div class="card-header">{{ __('Lista de series ott premium') }}</div>
 
                     <div class="card-body">
-                        <p>Enlace de la lista: <br><strong>{{ route('lists.download.seriesottPremium', $folder) }}</strong></p>
+                        <p>Enlace de la lista: <br><strong>{{ route('lists.download.seriesottpremium', $folder) }}</strong></p>
 
-                        <a href="{{ route('lists.download.seriesottPremium', $folder) }}" target="_blank" class="btn btn-outline-primary">Descargar</a>
+                        <a href="{{ route('lists.download.seriesottpremium', $folder) }}" target="_blank" class="btn btn-outline-primary">Descargar</a>
                     </div>
                 </div>
             </div>

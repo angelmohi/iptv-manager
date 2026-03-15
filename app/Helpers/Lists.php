@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class Lists
 {
-    private static function isPremiumUrl(?string $url): bool
+    private static function ispremiumUrl(?string $url): bool
     {
         if (empty($url)) {
             return false;
@@ -290,7 +290,7 @@ class Lists
 
 		foreach ($channels as $channel) {
 			// Excluir los premium de la lista normal de cine
-			if (self::isPremiumUrl($channel->url_channel)) {
+			if (self::ispremiumUrl($channel->url_channel)) {
 				continue;
 			}
 
@@ -307,42 +307,42 @@ class Lists
                 $extinf .= ' tvg-name="' . $channel->name . '"';
             }
             $extinf .= ',' . $channel->name;
-            $cinePremiumLines[] = $extinf;
+            $cineLines[] = $extinf;
 
             if (!empty($channel->user_agent)) {
-                $cinePremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+                $cineLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
             }
             if (!empty($channel->manifest_type)) {
-                $cinePremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+                $cineLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
             }
             if (!empty($channel->license_type)) {
-                $cinePremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+                $cineLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
             if (!empty($channel->api_key)) {
                 $license = $channel->api_key;
                 if (!empty($channel->catchup_api_key)) {
                     $license .= ',' . $channel->catchup_api_key;
                 }
-                $cinePremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+                $cineLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
             }
             if ($channel->apply_token) {
-                $cinePremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+                $cineLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
             }
             if (!empty($channel->url_channel) && $channel->apply_token) {
-                $cinePremiumLines[] = $channel->url_channel . '|X-TCDN-token=' . $cdnToken;
+                $cineLines[] = $channel->url_channel . '|X-TCDN-token=' . $cdnToken;
             } else if (!empty($channel->url_channel)) {
-                $cinePremiumLines[] = $channel->url_channel;
+                $cineLines[] = $channel->url_channel;
             }
-            $cinePremiumLines[] = '';
+            $cineLines[] = '';
         }
 
-        $content = implode("\n", $cinePremiumLines);
+        $content = implode("\n", $cineLines);
 
         $filename = 'cine.m3u';
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
-    public static function generateCinePremiumList(Account $account): void
+    public static function generateCinepremiumList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
         $folder = $account->folder ?? General::codeFromString($account->username, $account);
@@ -381,13 +381,13 @@ class Lists
 		})->values();
 
 		// Generate list for Cine
-		$cinePremiumLines = ['#EXTM3U'];
-		$cinePremiumLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
-		$cinePremiumLines[] = '';
+		$cinepremiumLines = ['#EXTM3U'];
+		$cinepremiumLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
+		$cinepremiumLines[] = '';
 
 		foreach ($channels as $channel) {
 			// Excluir los premium de la lista normal de cine
-			if (!self::isPremiumUrl($channel->url_channel)) {
+			if (!self::ispremiumUrl($channel->url_channel)) {
 				continue;
 			}
 
@@ -404,38 +404,38 @@ class Lists
                 $extinf .= ' tvg-name="' . $channel->name . '"';
             }
             $extinf .= ',' . $channel->name;
-            $cinePremiumLines[] = $extinf;
+            $cinepremiumLines[] = $extinf;
 
             if (!empty($channel->user_agent)) {
-                $cinePremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+                $cinepremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
             }
             if (!empty($channel->manifest_type)) {
-                $cinePremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+                $cinepremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
             }
             if (!empty($channel->license_type)) {
-                $cinePremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+                $cinepremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
             if (!empty($channel->api_key)) {
                 $license = $channel->api_key;
                 if (!empty($channel->catchup_api_key)) {
                     $license .= ',' . $channel->catchup_api_key;
                 }
-                $cinePremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+                $cinepremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
             }
             if ($channel->apply_token) {
-                $cinePremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+                $cinepremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
             }
             if (!empty($channel->url_channel) && $channel->apply_token) {
-                $cinePremiumLines[] = $channel->url_channel . '|X-TCDN-token=' . $cdnToken;
+                $cinepremiumLines[] = $channel->url_channel . '|X-TCDN-token=' . $cdnToken;
             } else if (!empty($channel->url_channel)) {
-                $cinePremiumLines[] = $channel->url_channel;
+                $cinepremiumLines[] = $channel->url_channel;
             }
-            $cinePremiumLines[] = '';
+            $cinepremiumLines[] = '';
         }
 
-        $content = implode("\n", $cinePremiumLines);
+        $content = implode("\n", $cinepremiumLines);
 
-        $filename = 'cinePremium.m3u';
+        $filename = 'cinepremium.m3u';
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
@@ -484,7 +484,7 @@ class Lists
 
 		foreach ($channels as $channel) {
 			// Excluir los premium de la lista normal de cine
-			if (self::isPremiumUrl($channel->url_channel)) {
+			if (self::ispremiumUrl($channel->url_channel)) {
 				continue;
 			}
 
@@ -534,7 +534,7 @@ class Lists
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
-	    public static function generateCineOttPremiumList(Account $account): void
+	    public static function generateCineOttpremiumList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
         $folder = $account->folder ?? General::codeFromString($account->username, $account);
@@ -573,13 +573,13 @@ class Lists
 		})->values();
 
 		// Generate list for Cine
-		$cineOttPremiumLines = ['#EXTM3U'];
-		$cineOttPremiumLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
-		$cineOttPremiumLines[] = '';
+		$cineOttpremiumLines = ['#EXTM3U'];
+		$cineOttpremiumLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
+		$cineOttpremiumLines[] = '';
 
 		foreach ($channels as $channel) {
 			// Excluir los premium de la lista normal de cine
-			if (!self::isPremiumUrl($channel->url_channel)) {
+			if (!self::ispremiumUrl($channel->url_channel)) {
 				continue;
 			}
 
@@ -596,36 +596,36 @@ class Lists
                 $extinf .= ' tvg-name="' . $channel->name . '"';
             }
             $extinf .= ',' . $channel->name;
-            $cineOttPremiumLines[] = $extinf;
+            $cineOttpremiumLines[] = $extinf;
 
             if (!empty($channel->user_agent)) {
-                $cineOttPremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+                $cineOttpremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
             }
             if (!empty($channel->manifest_type)) {
-                $cineOttPremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+                $cineOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
             }
             if (!empty($channel->license_type)) {
-                $cineOttPremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+                $cineOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
             if (!empty($channel->api_key)) {
                 $license = $channel->api_key;
                 if (!empty($channel->catchup_api_key)) {
                     $license .= ',' . $channel->catchup_api_key;
                 }
-                $cineOttPremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+                $cineOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
             }
             if ($channel->apply_token) {
-                $cineOttPremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+                $cineOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
             }
             if (!empty($channel->url_channel)) {
-                $cineOttPremiumLines[] = $channel->url_channel;
+                $cineOttpremiumLines[] = $channel->url_channel;
             }
-            $cineOttPremiumLines[] = '';
+            $cineOttpremiumLines[] = '';
         }
 
-        $content = implode("\n", $cineOttPremiumLines);
+        $content = implode("\n", $cineOttpremiumLines);
 
-        $filename = 'cineOttPremium.m3u';
+        $filename = 'cineOttpremium.m3u';
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }	
 	
@@ -689,7 +689,7 @@ class Lists
 
 		foreach ($channels as $channel) {
 			// Excluir los premium de la lista normal de cine
-			if (self::isPremiumUrl($channel->url_channel)) {
+			if (self::ispremiumUrl($channel->url_channel)) {
 				continue;
 			}
 
@@ -706,42 +706,42 @@ class Lists
                 $extinf .= ' tvg-name="' . $channel->name . '"';
             }
             $extinf .= ',' . $channel->name;
-            $seriesPremiumLines[] = $extinf;
+            $seriesLines[] = $extinf;
 
             if (!empty($channel->user_agent)) {
-                $seriesPremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+                $seriesLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
             }
             if (!empty($channel->manifest_type)) {
-                $seriesPremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+                $seriesLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
             }
             if (!empty($channel->license_type)) {
-                $seriesPremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+                $seriesLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
             if (!empty($channel->api_key)) {
                 $license = $channel->api_key;
                 if (!empty($channel->catchup_api_key)) {
                     $license .= ',' . $channel->catchup_api_key;
                 }
-                $seriesPremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+                $seriesLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
             }
             if ($channel->apply_token) {
-                $seriesPremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+                $seriesLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
             }
             if (!empty($channel->url_channel) && $channel->apply_token) {
-                $seriesPremiumLines[] = $channel->url_channel . '|X-TCDN-token=' . $cdnToken;
+                $seriesLines[] = $channel->url_channel . '|X-TCDN-token=' . $cdnToken;
             } else if (!empty($channel->url_channel)) {
-                $seriesPremiumLines[] = $channel->url_channel;
+                $seriesLines[] = $channel->url_channel;
             }
-            $seriesPremiumLines[] = '';
+            $seriesLines[] = '';
         }
 
-        $content = implode("\n", $seriesPremiumLines);
+        $content = implode("\n", $seriesLines);
 
         $filename = 'series.m3u';
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
-    public static function generateSeriesPremiumList(Account $account): void
+    public static function generateSeriespremiumList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
         $folder = $account->folder ?? General::codeFromString($account->username, $account);
@@ -795,13 +795,13 @@ class Lists
 		$channels = $sortedChannels->values();
 
 		// Generate list for Series
-		$seriesPremiumLines = ['#EXTM3U'];
-		$seriesPremiumLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
-		$seriesPremiumLines[] = '';
+		$seriespremiumLines = ['#EXTM3U'];
+		$seriespremiumLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
+		$seriespremiumLines[] = '';
 
 		foreach ($channels as $channel) {
 			// Incluir los premium de la lista normal de cine
-			if (!self::isPremiumUrl($channel->url_channel)) {
+			if (!self::ispremiumUrl($channel->url_channel)) {
 				continue;
 			}
 
@@ -818,38 +818,38 @@ class Lists
                 $extinf .= ' tvg-name="' . $channel->name . '"';
             }
             $extinf .= ',' . $channel->name;
-            $seriesPremiumLines[] = $extinf;
+            $seriespremiumLines[] = $extinf;
 
             if (!empty($channel->user_agent)) {
-                $seriesPremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+                $seriespremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
             }
             if (!empty($channel->manifest_type)) {
-                $seriesPremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+                $seriespremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
             }
             if (!empty($channel->license_type)) {
-                $seriesPremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+                $seriespremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
             if (!empty($channel->api_key)) {
                 $license = $channel->api_key;
                 if (!empty($channel->catchup_api_key)) {
                     $license .= ',' . $channel->catchup_api_key;
                 }
-                $seriesPremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+                $seriespremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
             }
             if ($channel->apply_token) {
-                $seriesPremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+                $seriespremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
             }
             if (!empty($channel->url_channel) && $channel->apply_token) {
-                $seriesPremiumLines[] = $channel->url_channel . '|X-TCDN-token=' . $cdnToken;
+                $seriespremiumLines[] = $channel->url_channel . '|X-TCDN-token=' . $cdnToken;
             } else if (!empty($channel->url_channel)) {
-                $seriesPremiumLines[] = $channel->url_channel;
+                $seriespremiumLines[] = $channel->url_channel;
             }
-            $seriesPremiumLines[] = '';
+            $seriespremiumLines[] = '';
         }
 
-        $content = implode("\n", $seriesPremiumLines);
+        $content = implode("\n", $seriespremiumLines);
 
-        $filename = 'seriesPremium.m3u';
+        $filename = 'seriespremium.m3u';
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
@@ -913,7 +913,7 @@ class Lists
 
 		foreach ($channels as $channel) {
 			// Excluir los premium de la lista normal de cine
-			if (self::isPremiumUrl($channel->url_channel)) {
+			if (self::ispremiumUrl($channel->url_channel)) {
 				continue;
 			}
 
@@ -930,40 +930,40 @@ class Lists
                 $extinf .= ' tvg-name="' . $channel->name . '"';
             }
             $extinf .= ',' . $channel->name;
-            $seriesOttPremiumLines[] = $extinf;
+            $seriesOttLines[] = $extinf;
 
             if (!empty($channel->user_agent)) {
-                $seriesOttPremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+                $seriesOttLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
             }
             if (!empty($channel->manifest_type)) {
-                $seriesOttPremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+                $seriesOttLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
             }
             if (!empty($channel->license_type)) {
-                $seriesOttPremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+                $seriesOttLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
             if (!empty($channel->api_key)) {
                 $license = $channel->api_key;
                 if (!empty($channel->catchup_api_key)) {
                     $license .= ',' . $channel->catchup_api_key;
                 }
-                $seriesOttPremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+                $seriesOttLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
             }
             if ($channel->apply_token) {
-                $seriesOttPremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+                $seriesOttLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
             }
             if (!empty($channel->url_channel)) {
-                $seriesOttPremiumLines[] = $channel->url_channel;
+                $seriesOttLines[] = $channel->url_channel;
             }
-            $seriesOttPremiumLines[] = '';
+            $seriesOttLines[] = '';
         }
 
-        $content = implode("\n", $seriesOttPremiumLines);
+        $content = implode("\n", $seriesOttLines);
 
         $filename = 'seriesOtt.m3u';
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
-	    public static function generateSeriesOttPremiumList(Account $account): void
+	    public static function generateSeriesOttpremiumList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
         $folder = $account->folder ?? General::codeFromString($account->username, $account);
@@ -1017,13 +1017,13 @@ class Lists
 		$channels = $sortedChannels->values();
 
 		// Generate list for Series
-		$seriesOttPremiumLines = ['#EXTM3U'];
-		$seriesOttPremiumLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
-		$seriesOttPremiumLines[] = '';
+		$seriesOttpremiumLines = ['#EXTM3U'];
+		$seriesOttpremiumLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
+		$seriesOttpremiumLines[] = '';
 
 		foreach ($channels as $channel) {
 			// Incluir los premium de la lista normal de cine
-			if (!self::isPremiumUrl($channel->url_channel)) {
+			if (!self::ispremiumUrl($channel->url_channel)) {
 				continue;
 			}
 
@@ -1040,36 +1040,36 @@ class Lists
                 $extinf .= ' tvg-name="' . $channel->name . '"';
             }
             $extinf .= ',' . $channel->name;
-            $seriesOttPremiumLines[] = $extinf;
+            $seriesOttpremiumLines[] = $extinf;
 
             if (!empty($channel->user_agent)) {
-                $seriesOttPremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+                $seriesOttpremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
             }
             if (!empty($channel->manifest_type)) {
-                $seriesOttPremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+                $seriesOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
             }
             if (!empty($channel->license_type)) {
-                $seriesOttPremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+                $seriesOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
             }
             if (!empty($channel->api_key)) {
                 $license = $channel->api_key;
                 if (!empty($channel->catchup_api_key)) {
                     $license .= ',' . $channel->catchup_api_key;
                 }
-                $seriesOttPremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+                $seriesOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
             }
             if ($channel->apply_token) {
-                $seriesOttPremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+                $seriesOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
             }
             if (!empty($channel->url_channel)) {
-                $seriesOttPremiumLines[] = $channel->url_channel;
+                $seriesOttpremiumLines[] = $channel->url_channel;
             }
-            $seriesOttPremiumLines[] = '';
+            $seriesOttpremiumLines[] = '';
         }
 
-        $content = implode("\n", $seriesOttPremiumLines);
+        $content = implode("\n", $seriesOttpremiumLines);
 
-        $filename = 'seriesPremiumOtt.m3u';
+        $filename = 'seriesOttpremium.m3u';
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 
