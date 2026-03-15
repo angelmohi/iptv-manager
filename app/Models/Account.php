@@ -31,4 +31,9 @@ class Account extends Model
     protected $casts = [
         'token_expires_at' => 'datetime',
     ];
+
+    public function downloadLogs()
+    {
+        return $this->hasMany(DownloadLog::class);
+    }
 }

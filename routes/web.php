@@ -36,6 +36,7 @@ Route::prefix('accounts')->controller(AccountController::class)->group(function 
     Route::post('/', 'store')->name('accounts.store');
     Route::put('/{account}', 'update')->name('accounts.update');
     Route::post('/generate-token/{account}', 'generateToken')->name('accounts.generate-token');
+    Route::get('/{account}/logs', 'logs')->name('accounts.logs');
 });
 
 Route::prefix('users')->controller(UserController::class)->group(function () {

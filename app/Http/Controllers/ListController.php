@@ -23,6 +23,45 @@ class ListController extends Controller
         $this->middleware('auth')->except(['downloadTivimate', 'downloadOtt', 'downloadCine', 'downloadSeries', 'downloadCineOtt', 'downloadSeriesOtt', 'downloadKodi']);
     }
 
+    private function logDownloadAccess(?Account $account, string $listName): void
+    {
+        $ip = request()->ip();
+        $locationData = [
+            'city' => null,
+            'region' => null,
+            'country' => null,
+        ];
+
+        try {
+            $response = Http::timeout(10)
+                ->get("https://ipinfo.io/{$ip}/json", [
+                    'token' => config('services.ipinfo.token'),
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $locationData['city']    = $data['city']    ?? null;
+                $locationData['region']  = $data['region']  ?? null;
+                $locationData['country'] = $data['country'] ?? null;
+            } else {
+                Log::error('ipinfo.io returned error: ' . $response->body());
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error al conectar con ipinfo.io: ' . $e->getMessage());
+        }
+
+        DownloadLog::create([
+            'ip' => $ip,
+            'account_id' => $account->id ?? null,
+            'list' => $listName,
+            'city' => $locationData['city'],
+            'region' => $locationData['region'],
+            'country' => $locationData['country'],
+            'user_agent' => request()->userAgent(),
+        ]);
+    }
+
     /**
      * Update the lists.
      */
@@ -59,42 +98,7 @@ class ListController extends Controller
         }
 
         $account = Account::where('folder', $folder)->first();
-
-        $ip = request()->query('client_ip', request()->ip());
-        $locationData = [
-            'city' => null,
-            'region' => null,
-            'country' => null,
-        ];
-
-        try {
-            $response = Http::timeout(10)
-                ->get("https://ipinfo.io/{$ip}/json", [
-                    'token' => env('IPINFO_TOKEN'),
-                ]);
-    
-            if ($response->successful()) {
-                $data = $response->json();
-                $locationData['city']    = $data['city']    ?? null;
-                $locationData['region']  = $data['region']  ?? null;
-                $locationData['country'] = $data['country'] ?? null;
-            } else {
-                Log::error('ipinfo.io returned error: ' . $response->body());
-            }
-    
-        } catch (\Exception $e) {
-            Log::error('Error al conectar con ipinfo.io: ' . $e->getMessage());
-        }
-        
-        DownloadLog::create([
-            'ip' => $ip,
-            'account_id' => $account->id ?? null,
-            'list' => 'Tivimate',
-            'city' => $locationData['city'],
-            'region' => $locationData['region'],
-            'country' => $locationData['country'],
-            'user_agent' => request()->userAgent(),
-        ]);
+        $this->logDownloadAccess($account, 'Tivimate');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'total.m3u';
@@ -122,42 +126,7 @@ class ListController extends Controller
         }
 
         $account = Account::where('folder', $folder)->first();
-
-        $ip = request()->query('client_ip', request()->ip());
-        $locationData = [
-            'city' => null,
-            'region' => null,
-            'country' => null,
-        ];
-
-        try {
-            $response = Http::timeout(10)
-                ->get("https://ipinfo.io/{$ip}/json", [
-                    'token' => env('IPINFO_TOKEN'),
-                ]);
-    
-            if ($response->successful()) {
-                $data = $response->json();
-                $locationData['city']    = $data['city']    ?? null;
-                $locationData['region']  = $data['region']  ?? null;
-                $locationData['country'] = $data['country'] ?? null;
-            } else {
-                Log::error('ipinfo.io returned error: ' . $response->body());
-            }
-    
-        } catch (\Exception $e) {
-            Log::error('Error al conectar con ipinfo.io: ' . $e->getMessage());
-        }
-
-        DownloadLog::create([
-            'ip' => $ip,
-            'account_id' => $account->id ?? null,
-            'list' => 'OTT',
-            'city' => $locationData['city'],
-            'region' => $locationData['region'],
-            'country' => $locationData['country'],
-            'user_agent' => request()->userAgent(),
-        ]);
+        $this->logDownloadAccess($account, 'OTT');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'total_ott.m3u';
@@ -185,42 +154,7 @@ class ListController extends Controller
         }
 
         $account = Account::where('folder', $folder)->first();
-
-        $ip = request()->query('client_ip', request()->ip());
-        $locationData = [
-            'city' => null,
-            'region' => null,
-            'country' => null,
-        ];
-
-        try {
-            $response = Http::timeout(10)
-                ->get("https://ipinfo.io/{$ip}/json", [
-                    'token' => env('IPINFO_TOKEN'),
-                ]);
-    
-            if ($response->successful()) {
-                $data = $response->json();
-                $locationData['city']    = $data['city']    ?? null;
-                $locationData['region']  = $data['region']  ?? null;
-                $locationData['country'] = $data['country'] ?? null;
-            } else {
-                Log::error('ipinfo.io returned error: ' . $response->body());
-            }
-    
-        } catch (\Exception $e) {
-            Log::error('Error al conectar con ipinfo.io: ' . $e->getMessage());
-        }
-
-        DownloadLog::create([
-            'ip' => $ip,
-            'account_id' => $account->id ?? null,
-            'list' => 'OTT',
-            'city' => $locationData['city'],
-            'region' => $locationData['region'],
-            'country' => $locationData['country'],
-            'user_agent' => request()->userAgent(),
-        ]);
+        $this->logDownloadAccess($account, 'Tivimate');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'cine.m3u';
@@ -245,42 +179,7 @@ class ListController extends Controller
         }
 
         $account = Account::where('folder', $folder)->first();
-
-        $ip = request()->query('client_ip', request()->ip());
-        $locationData = [
-            'city' => null,
-            'region' => null,
-            'country' => null,
-        ];
-
-        try {
-            $response = Http::timeout(10)
-                ->get("https://ipinfo.io/{$ip}/json", [
-                    'token' => env('IPINFO_TOKEN'),
-                ]);
-    
-            if ($response->successful()) {
-                $data = $response->json();
-                $locationData['city']    = $data['city']    ?? null;
-                $locationData['region']  = $data['region']  ?? null;
-                $locationData['country'] = $data['country'] ?? null;
-            } else {
-                Log::error('ipinfo.io returned error: ' . $response->body());
-            }
-    
-        } catch (\Exception $e) {
-            Log::error('Error al conectar con ipinfo.io: ' . $e->getMessage());
-        }
-
-        DownloadLog::create([
-            'ip' => $ip,
-            'account_id' => $account->id ?? null,
-            'list' => 'OTT',
-            'city' => $locationData['city'],
-            'region' => $locationData['region'],
-            'country' => $locationData['country'],
-            'user_agent' => request()->userAgent(),
-        ]);
+        $this->logDownloadAccess($account, 'Tivimate');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'cinePremium.m3u';
@@ -308,42 +207,7 @@ class ListController extends Controller
         }
 
         $account = Account::where('folder', $folder)->first();
-
-        $ip = request()->query('client_ip', request()->ip());
-        $locationData = [
-            'city' => null,
-            'region' => null,
-            'country' => null,
-        ];
-
-        try {
-            $response = Http::timeout(10)
-                ->get("https://ipinfo.io/{$ip}/json", [
-                    'token' => env('IPINFO_TOKEN'),
-                ]);
-    
-            if ($response->successful()) {
-                $data = $response->json();
-                $locationData['city']    = $data['city']    ?? null;
-                $locationData['region']  = $data['region']  ?? null;
-                $locationData['country'] = $data['country'] ?? null;
-            } else {
-                Log::error('ipinfo.io returned error: ' . $response->body());
-            }
-    
-        } catch (\Exception $e) {
-            Log::error('Error al conectar con ipinfo.io: ' . $e->getMessage());
-        }
-
-        DownloadLog::create([
-            'ip' => $ip,
-            'account_id' => $account->id ?? null,
-            'list' => 'OTT',
-            'city' => $locationData['city'],
-            'region' => $locationData['region'],
-            'country' => $locationData['country'],
-            'user_agent' => request()->userAgent(),
-        ]);
+        $this->logDownloadAccess($account, 'OTT');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'cineOtt.m3u';
@@ -368,42 +232,7 @@ class ListController extends Controller
         }
 
         $account = Account::where('folder', $folder)->first();
-
-        $ip = request()->query('client_ip', request()->ip());
-        $locationData = [
-            'city' => null,
-            'region' => null,
-            'country' => null,
-        ];
-
-        try {
-            $response = Http::timeout(10)
-                ->get("https://ipinfo.io/{$ip}/json", [
-                    'token' => env('IPINFO_TOKEN'),
-                ]);
-    
-            if ($response->successful()) {
-                $data = $response->json();
-                $locationData['city']    = $data['city']    ?? null;
-                $locationData['region']  = $data['region']  ?? null;
-                $locationData['country'] = $data['country'] ?? null;
-            } else {
-                Log::error('ipinfo.io returned error: ' . $response->body());
-            }
-    
-        } catch (\Exception $e) {
-            Log::error('Error al conectar con ipinfo.io: ' . $e->getMessage());
-        }
-
-        DownloadLog::create([
-            'ip' => $ip,
-            'account_id' => $account->id ?? null,
-            'list' => 'OTT',
-            'city' => $locationData['city'],
-            'region' => $locationData['region'],
-            'country' => $locationData['country'],
-            'user_agent' => request()->userAgent(),
-        ]);
+        $this->logDownloadAccess($account, 'OTT');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'cineOttPremium.m3u';
@@ -431,42 +260,7 @@ class ListController extends Controller
         }
 
         $account = Account::where('folder', $folder)->first();
-
-        $ip = request()->query('client_ip', request()->ip());
-        $locationData = [
-            'city' => null,
-            'region' => null,
-            'country' => null,
-        ];
-
-        try {
-            $response = Http::timeout(10)
-                ->get("https://ipinfo.io/{$ip}/json", [
-                    'token' => env('IPINFO_TOKEN'),
-                ]);
-    
-            if ($response->successful()) {
-                $data = $response->json();
-                $locationData['city']    = $data['city']    ?? null;
-                $locationData['region']  = $data['region']  ?? null;
-                $locationData['country'] = $data['country'] ?? null;
-            } else {
-                Log::error('ipinfo.io returned error: ' . $response->body());
-            }
-    
-        } catch (\Exception $e) {
-            Log::error('Error al conectar con ipinfo.io: ' . $e->getMessage());
-        }
-
-        DownloadLog::create([
-            'ip' => $ip,
-            'account_id' => $account->id ?? null,
-            'list' => 'OTT',
-            'city' => $locationData['city'],
-            'region' => $locationData['region'],
-            'country' => $locationData['country'],
-            'user_agent' => request()->userAgent(),
-        ]);
+        $this->logDownloadAccess($account, 'Tivimate');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'series.m3u';
@@ -491,42 +285,7 @@ class ListController extends Controller
         }
 
         $account = Account::where('folder', $folder)->first();
-
-        $ip = request()->query('client_ip', request()->ip());
-        $locationData = [
-            'city' => null,
-            'region' => null,
-            'country' => null,
-        ];
-
-        try {
-            $response = Http::timeout(10)
-                ->get("https://ipinfo.io/{$ip}/json", [
-                    'token' => env('IPINFO_TOKEN'),
-                ]);
-    
-            if ($response->successful()) {
-                $data = $response->json();
-                $locationData['city']    = $data['city']    ?? null;
-                $locationData['region']  = $data['region']  ?? null;
-                $locationData['country'] = $data['country'] ?? null;
-            } else {
-                Log::error('ipinfo.io returned error: ' . $response->body());
-            }
-    
-        } catch (\Exception $e) {
-            Log::error('Error al conectar con ipinfo.io: ' . $e->getMessage());
-        }
-
-        DownloadLog::create([
-            'ip' => $ip,
-            'account_id' => $account->id ?? null,
-            'list' => 'OTT',
-            'city' => $locationData['city'],
-            'region' => $locationData['region'],
-            'country' => $locationData['country'],
-            'user_agent' => request()->userAgent(),
-        ]);
+        $this->logDownloadAccess($account, 'Tivimate');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'seriesPremium.m3u';
@@ -554,42 +313,7 @@ class ListController extends Controller
         }
 
         $account = Account::where('folder', $folder)->first();
-
-        $ip = request()->query('client_ip', request()->ip());
-        $locationData = [
-            'city' => null,
-            'region' => null,
-            'country' => null,
-        ];
-
-        try {
-            $response = Http::timeout(10)
-                ->get("https://ipinfo.io/{$ip}/json", [
-                    'token' => env('IPINFO_TOKEN'),
-                ]);
-    
-            if ($response->successful()) {
-                $data = $response->json();
-                $locationData['city']    = $data['city']    ?? null;
-                $locationData['region']  = $data['region']  ?? null;
-                $locationData['country'] = $data['country'] ?? null;
-            } else {
-                Log::error('ipinfo.io returned error: ' . $response->body());
-            }
-    
-        } catch (\Exception $e) {
-            Log::error('Error al conectar con ipinfo.io: ' . $e->getMessage());
-        }
-
-        DownloadLog::create([
-            'ip' => $ip,
-            'account_id' => $account->id ?? null,
-            'list' => 'OTT',
-            'city' => $locationData['city'],
-            'region' => $locationData['region'],
-            'country' => $locationData['country'],
-            'user_agent' => request()->userAgent(),
-        ]);
+        $this->logDownloadAccess($account, 'OTT');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'seriesOtt.m3u';
@@ -614,42 +338,7 @@ class ListController extends Controller
         }
 
         $account = Account::where('folder', $folder)->first();
-
-        $ip = request()->query('client_ip', request()->ip());
-        $locationData = [
-            'city' => null,
-            'region' => null,
-            'country' => null,
-        ];
-
-        try {
-            $response = Http::timeout(10)
-                ->get("https://ipinfo.io/{$ip}/json", [
-                    'token' => env('IPINFO_TOKEN'),
-                ]);
-    
-            if ($response->successful()) {
-                $data = $response->json();
-                $locationData['city']    = $data['city']    ?? null;
-                $locationData['region']  = $data['region']  ?? null;
-                $locationData['country'] = $data['country'] ?? null;
-            } else {
-                Log::error('ipinfo.io returned error: ' . $response->body());
-            }
-    
-        } catch (\Exception $e) {
-            Log::error('Error al conectar con ipinfo.io: ' . $e->getMessage());
-        }
-
-        DownloadLog::create([
-            'ip' => $ip,
-            'account_id' => $account->id ?? null,
-            'list' => 'OTT',
-            'city' => $locationData['city'],
-            'region' => $locationData['region'],
-            'country' => $locationData['country'],
-            'user_agent' => request()->userAgent(),
-        ]);
+        $this->logDownloadAccess($account, 'OTT');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'seriesOtt.m3u';
@@ -677,42 +366,7 @@ class ListController extends Controller
         }
 
         $account = Account::where('folder', $folder)->first();
-
-        $ip = request()->query('client_ip', request()->ip());
-        $locationData = [
-            'city' => null,
-            'region' => null,
-            'country' => null,
-        ];
-
-        try {
-            $response = Http::timeout(10)
-                ->get("https://ipinfo.io/{$ip}/json", [
-                    'token' => env('IPINFO_TOKEN'),
-                ]);
-    
-            if ($response->successful()) {
-                $data = $response->json();
-                $locationData['city']    = $data['city']    ?? null;
-                $locationData['region']  = $data['region']  ?? null;
-                $locationData['country'] = $data['country'] ?? null;
-            } else {
-                Log::error('ipinfo.io returned error: ' . $response->body());
-            }
-    
-        } catch (\Exception $e) {
-            Log::error('Error al conectar con ipinfo.io: ' . $e->getMessage());
-        }
-
-        DownloadLog::create([
-            'ip' => $ip,
-            'account_id' => $account->id ?? null,
-            'list' => 'Kodi',
-            'city' => $locationData['city'],
-            'region' => $locationData['region'],
-            'country' => $locationData['country'],
-            'user_agent' => request()->userAgent(),
-        ]);
+        $this->logDownloadAccess($account, 'Kodi');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'kodi.m3u';

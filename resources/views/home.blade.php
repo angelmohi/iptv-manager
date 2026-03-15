@@ -54,7 +54,71 @@
             </div>
         </div>
     </div>
-</div>
+
+    {{-- Tabla de accesos por cuenta --}}
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Accesos por cuenta</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="accountTabs" role="tablist">
+                        @foreach($accountLogs as $i => $account)
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link {{ $i === 0 ? 'active' : '' }}"
+                                        id="tab-{{ $account->id }}"
+                                        data-bs-toggle="tab"
+                                        data-bs-target="#pane-{{ $account->id }}"
+                                        type="button" role="tab"
+                                        data-logs-url="{{ route('accounts.logs', $account->id) }}"
+                                        aria-controls="pane-{{ $account->id }}"
+                                        aria-selected="{{ $i === 0 ? 'true' : 'false' }}">
+                                    {{ $account->name }}
+                                </button>
+                            </li>
+                        @endforeach
+                    </ul>
+                    <div class="tab-content mt-3" id="accountTabsContent">
+                        @foreach($accountLogs as $i => $account)
+                            <div class="tab-pane fade {{ $i === 0 ? 'show active' : '' }}"
+                                 id="pane-{{ $account->id }}" role="tabpanel"
+                                 aria-labelledby="tab-{{ $account->id }}">
+                                <div class="table-responsive position-relative">
+                                  <div id="spinner-{{ $account->id }}" class="spinner-overlay d-none">
+                                    <div class="spinner-border text-primary" role="status">
+                                      <span class="visually-hidden">Cargando...</span>
+                                    </div>
+                                  </div>
+                                  <table class="table table-sm table-striped table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>IP</th>
+                                                <th>Lista</th>
+                                                <th>Ciudad</th>
+                                                <th>Región</th>
+                                                <th>Fecha</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody-{{ $account->id }}">
+                                            {{-- Se llena por AJAX, el spinner overlay se muestra mientras carga --}}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="pagination-{{ $account->id }}" class="d-flex justify-content-between align-items-center mt-2" style="min-height: 45px;"></div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <style>
+  .spinner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.6);z-index:10}
+  .table-responsive.position-relative{min-height: 360px;}
+  </style>
 
 <script>
   const dailyDates    = @json($last7->pluck('date')->toArray());
@@ -162,5 +226,94 @@
       }
     }
   );
+
+  // — Logs table with AJAX pagination —
+  const logsState = {};
+
+  function loadLogs(accountId, url, page) {
+    const tbody      = document.getElementById('tbody-' + accountId);
+    const pagination = document.getElementById('pagination-' + accountId);
+    const spinner    = document.getElementById('spinner-' + accountId);
+    const table      = tbody ? tbody.closest('table') : null;
+    if (spinner) spinner.classList.remove('d-none');
+    if (table) table.classList.add('opacity-50');
+    pagination.innerHTML = '';
+
+    fetch(url + '?page=' + page, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (!data.data || data.data.length === 0) {
+        if (spinner) spinner.classList.add('d-none');
+        if (table) table.classList.remove('opacity-50');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No hay registros para esta cuenta.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.data.map(row => `
+        <tr>
+          <td>${row.ip ?? ''}</td>
+          <td>${row.list ?? ''}</td>
+          <td>${row.city ?? ''}</td>
+          <td>${row.region ?? ''}</td>
+          <td>${row.created_at_formatted ?? ''}</td>
+        </tr>
+      `).join('');
+
+      // Pagination controls
+      const from  = data.from ?? 0;
+      const to    = data.to ?? 0;
+      const total = data.total ?? 0;
+      const currentPage = data.current_page;
+      const lastPage    = data.last_page;
+
+      const info = `<small class="text-muted">${from}–${to} de ${total}</small>`;
+
+      let buttons = '<div class="btn-group btn-group-sm">';
+      buttons += `<button class="btn btn-outline-secondary" ${currentPage <= 1 ? 'disabled' : ''}
+                    onclick="loadLogs(${accountId}, '${url}', ${currentPage - 1})">‹</button>`;
+      // Show at most 5 page buttons around the current page
+      const start = Math.max(1, currentPage - 2);
+      const end   = Math.min(lastPage, currentPage + 2);
+      for (let p = start; p <= end; p++) {
+        buttons += `<button class="btn btn-outline-secondary ${p === currentPage ? 'active' : ''}"
+                      onclick="loadLogs(${accountId}, '${url}', ${p})">${p}</button>`;
+      }
+      buttons += `<button class="btn btn-outline-secondary" ${currentPage >= lastPage ? 'disabled' : ''}
+                    onclick="loadLogs(${accountId}, '${url}', ${currentPage + 1})">›</button>`;
+      buttons += '</div>';
+
+      pagination.innerHTML = info + buttons;
+      if (spinner) spinner.classList.add('d-none');
+      if (table) table.classList.remove('opacity-50');
+      logsState[accountId] = { url, page: currentPage };
+    })
+    .catch(() => {
+      if (spinner) spinner.classList.add('d-none');
+      if (table) table.classList.remove('opacity-50');
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3">Error al cargar los datos.</td></tr>';
+    });
+  }
+
+  // Load the first visible tab on page load
+  const firstTab = document.querySelector('#accountTabs .nav-link.active');
+  if (firstTab) {
+    const accountId = firstTab.getAttribute('data-bs-target').replace('#pane-', '');
+    loadLogs(accountId, firstTab.dataset.logsUrl, 1);
+  }
+
+  // Load data when switching tabs (only if not already loaded for current page)
+  document.querySelectorAll('#accountTabs .nav-link').forEach(btn => {
+    btn.addEventListener('shown.bs.tab', function () {
+      const accountId = btn.getAttribute('data-bs-target').replace('#pane-', '');
+      const url       = btn.dataset.logsUrl;
+      const state     = logsState[accountId];
+      
+      if (!state) {
+        loadLogs(accountId, url, 1);
+      }
+    });
+  });
 </script>
 @endsection

@@ -40,4 +40,8 @@ return [
     'iptv' => [
         'token_account' => env('IPTV_TOKEN_ACCOUNT'),
     ],
+
+    'ipinfo' => [
+        'token' => env('IPINFO_TOKEN'),
+    ],
 ];

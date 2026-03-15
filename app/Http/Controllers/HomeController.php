@@ -92,12 +92,15 @@ class HomeController extends Controller
             ->where('token_expires_at', '<', now())
             ->get(['id', 'name', 'token_expires_at']);
 
+        $accountLogs = Account::get(['id', 'name']);
+
         return view('home', [
             'last7'            => $last7,
             'byList'           => $byList,
             'accessDates'      => $accessDates->toArray(),
             'accessDatasets'   => $accessDatasets,
             'expiredAccounts'  => $expiredAccounts,
+            'accountLogs'      => $accountLogs,
         ]);
     }
 }

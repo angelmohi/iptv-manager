@@ -120,4 +120,22 @@ class AccountController extends Controller
         Log::info('CDN Token obtenido y reemplazado correctamente en los archivos.');
         return jsonIframeRedirection("");
     }
+
+    /**
+     * Return paginated download logs for a given account (AJAX).
+     */
+    public function logs(Account $account): JsonResponse
+    {
+        $logs = $account->downloadLogs()
+            ->select('id', 'ip', 'list', 'city', 'region', 'created_at')
+            ->latest()
+            ->paginate(10);
+
+        $logs->getCollection()->transform(function ($row) {
+            $row->created_at_formatted = $row->created_at->format('d/m/Y H:i');
+            return $row;
+        });
+
+        return response()->json($logs);
+    }
 }
