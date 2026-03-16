@@ -82,9 +82,13 @@ class GetCdnTokenScheduledAll extends Command
                 Lists::generateTivimateList($account);
                 Lists::generateOttList($account);
                 Lists::generateCineList($account);
+				Lists::generateCinepremiumList($account);
                 Lists::generateSeriesList($account);
+				Lists::generateSeriespremiumList($account);
                 Lists::generateCineOttList($account);
+				Lists::generateCinepremiumOttList($account);
                 Lists::generateSeriesOttList($account);
+				Lists::generateSeriespremiumOttList($account);
                 Lists::generateKodiList($account);
                 
                 $this->info("✓ Cuenta {$account->id} procesada correctamente");
