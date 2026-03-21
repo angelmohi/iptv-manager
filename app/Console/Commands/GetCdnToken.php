@@ -20,12 +20,13 @@ class GetCdnToken extends Command
 
         if ($accountId) {
             $accounts = Account::where('id', $accountId)->get();
-            
+
             if ($accounts->isEmpty()) {
                 $this->error("No se encontró la cuenta con ID: {$accountId}");
                 return 1;
             }
-        } else {
+        }
+        else {
             $accounts = Account::all();
         }
 
@@ -35,13 +36,18 @@ class GetCdnToken extends Command
                 Log::info("CDN Token obtenido: {$result['cdnToken']}");
                 Lists::generateTivimateList($account);
                 Lists::generateOttList($account);
-				Lists::generateCineList($account);
-				Lists::generateSeriesList($account);
-				Lists::generateCineOttList($account);
-				Lists::generateSeriesOttList($account);
+                Lists::generateCineList($account);
+                Lists::generateSeriesList($account);
+                Lists::generateCineOttList($account);
+                Lists::generateSeriesOttList($account);
                 Lists::generateKodiList($account);
+                Lists::generateCineOttpremiumList($account);
+                Lists::generateSeriesOttpremiumList($account);
+                Lists::generateCinePremiumList($account);
+                Lists::generateSeriesPremiumList($account);
                 Log::info('CDN Token obtenido y reemplazado correctamente en los archivos.');
-            } catch (TokenException $e) {
+            }
+            catch (TokenException $e) {
                 $this->error($e->getMessage());
                 Log::error($e);
                 return 1;

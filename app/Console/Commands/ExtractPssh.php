@@ -66,7 +66,7 @@ class ExtractPssh extends Command
             $catchupKeysVal = $channel->catchup_api_key;
 
             try {
-                $pssh = Pssh::getFromUrl($url, (bool) $channel->apply_token ? $token : null);
+                $pssh = Pssh::getFromUrl($url, (bool)$channel->apply_token ? $token : null);
 
                 if ($pssh && $pssh != $channel->pssh) {
                     $psshVal = $pssh;
@@ -78,17 +78,21 @@ class ExtractPssh extends Command
                         $keysVal = $keys;
                         $keysUpdated = true;
                         Log::info("PSSH Extraction: Updated keys for channel '{$channel->name}' (ID: {$channel->id}).");
-                    } else {
+                    }
+                    else {
                         Log::info("PSSH Extraction: No keys found for channel '{$channel->name}' (ID: {$channel->id}).");
                     }
                 }
 
                 if ($psshUpdated || $keysUpdated) {
-                    if ($psshUpdated) $channel->pssh = $psshVal;
-                    if ($keysUpdated) $channel->api_key = $keysVal;
+                    if ($psshUpdated)
+                        $channel->pssh = $psshVal;
+                    if ($keysUpdated)
+                        $channel->api_key = $keysVal;
                     $channel->save();
                 }
-            } catch (Exception $e) {
+            }
+            catch (Exception $e) {
                 Log::error("PSSH Extraction: Error in channel '{$channel->name}' (ID: {$channel->id}): " . $e->getMessage());
             }
 
@@ -96,7 +100,7 @@ class ExtractPssh extends Command
 
             if ($catchup_url) {
                 try {
-                    $catchup_pssh = Pssh::getFromUrl($catchup_url, (bool) $channel->apply_token ? $token : null, true);
+                    $catchup_pssh = Pssh::getFromUrl($catchup_url, (bool)$channel->apply_token ? $token : null, true);
 
                     if ($catchup_pssh && $catchup_pssh != $channel->catchup_pssh) {
                         $catchupPsshVal = $catchup_pssh;
@@ -108,17 +112,21 @@ class ExtractPssh extends Command
                             $catchupKeysVal = $catchup_keys;
                             $catchupKeysUpdated = true;
                             Log::info("PSSH Extraction: Updated catch-up keys for channel '{$channel->name}' (ID: {$channel->id}).");
-                        } else {
+                        }
+                        else {
                             Log::info("PSSH Extraction: No catch-up keys found for channel '{$channel->name}' (ID: {$channel->id}).");
                         }
                     }
 
                     if ($catchupPsshUpdated || $catchupKeysUpdated) {
-                        if ($catchupPsshUpdated) $channel->catchup_pssh = $catchupPsshVal;
-                        if ($catchupKeysUpdated) $channel->catchup_api_key = $catchupKeysVal;
+                        if ($catchupPsshUpdated)
+                            $channel->catchup_pssh = $catchupPsshVal;
+                        if ($catchupKeysUpdated)
+                            $channel->catchup_api_key = $catchupKeysVal;
                         $channel->save();
                     }
-                } catch (Exception $e) {
+                }
+                catch (Exception $e) {
                     Log::error("PSSH Extraction: Error in catch-up for channel '{$channel->name}' (ID: {$channel->id}): " . $e->getMessage());
                 }
 
@@ -130,10 +138,6 @@ class ExtractPssh extends Command
         foreach ($accounts as $account) {
             Lists::generateTivimateList($account);
             Lists::generateOttList($account);
-            Lists::generateCineList($account);
-            Lists::generateSeriesList($account);
-            Lists::generateCineOttList($account);
-            Lists::generateSeriesOttList($account);
             Lists::generateKodiList($account);
         }
 
