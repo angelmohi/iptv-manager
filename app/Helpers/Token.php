@@ -6,6 +6,7 @@ use App\Exceptions\TokenException;
 use App\Models\Account;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class Token
 {
@@ -33,19 +34,37 @@ class Token
             $query['deviceId'] = $account->device_id;
         }
 
-        $response = Http::get($apiTokenUrl, $query);
+        $maxAttempts = 3;
+        $data = null;
 
-        if ($response->failed()) {
-            throw new TokenException(
-                'Error obtaining token from external API: HTTP ' .
-                $response->status()
-            );
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $response = Http::get($apiTokenUrl, $query);
+
+            if ($response->failed()) {
+                if ($attempt < $maxAttempts) {
+                    sleep(5);
+                    continue;
+                }
+                throw new TokenException(
+                    'Error obtaining token from external API: HTTP ' .
+                    $response->status()
+                );
+            }
+
+            $data = $response->json();
+
+            if (!empty($data['deviceId']) && !empty($data['cdnToken'])) {
+                break;
+            }
+
+            if ($attempt < $maxAttempts) {
+                Log::warning("CDN token attempt {$attempt}/{$maxAttempts}: incomplete response, retrying in 5s...");
+                sleep(5);
+            }
         }
 
-        $data = $response->json();
-
         if (empty($data['deviceId']) || empty($data['cdnToken'])) {
-            throw new TokenException('Incomplete API response: missing deviceId or cdnToken.');
+            throw new TokenException('Incomplete API response after ' . $maxAttempts . ' attempts: missing deviceId or cdnToken.');
         }
 
         $deviceId = $data['deviceId'];
