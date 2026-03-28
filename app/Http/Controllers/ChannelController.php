@@ -346,6 +346,10 @@ class ChannelController extends Controller
                     Lists::generateCineOttList($account);
                     Lists::generateSeriesOttList($account);
                     Lists::generateKodiList($account);
+                    Lists::generateCineOttpremiumList($account);
+                    Lists::generateSeriesOttpremiumList($account);
+                    Lists::generateCinePremiumList($account);
+                    Lists::generateSeriesPremiumList($account);
                 }
             }
         } catch (\Exception $e) {
@@ -431,6 +435,10 @@ class ChannelController extends Controller
                     Lists::generateCineOttList($account);
                     Lists::generateSeriesOttList($account);
                     Lists::generateKodiList($account);
+                    Lists::generateCineOttpremiumList($account);
+                    Lists::generateSeriesOttpremiumList($account);
+                    Lists::generateCinePremiumList($account);
+                    Lists::generateSeriesPremiumList($account);
                 }
             }
         } catch (\Exception $e) {

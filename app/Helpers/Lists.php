@@ -9,28 +9,12 @@ use Illuminate\Support\Facades\Storage;
 
 class Lists
 {
-    private static function ispremiumUrl(?string $url): bool
-    {
-        if (empty($url)) {
-            return false;
-        }
-
-        $patterns = [
-            'prod/dash/skymd',
-            'prod/dash/applmd',
-            'prod/dash/hbomd',
-        ];
-
-        return Str::contains($url, $patterns);
-    }
-
     /**
      * Generate tivimate list.
      *
      * @param  Account  $account
      * @return void
      */
-	 
     public static function generateTivimateList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
@@ -245,6 +229,12 @@ class Lists
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
+    /**
+     * Generate Cine list.
+     *
+     * @param  Account  $account
+     * @return void
+     */
     public static function generateCineList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
@@ -342,6 +332,12 @@ class Lists
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
+    /**
+     * Generate Cine Premium list.
+     *
+     * @param  Account  $account
+     * @return void
+     */
     public static function generateCinepremiumList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
@@ -439,7 +435,13 @@ class Lists
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
-	    public static function generateCineOttList(Account $account): void
+    /**
+     * Generate Cine Ott list.
+     *
+     * @param  Account  $account
+     * @return void
+     */
+	public static function generateCineOttList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
         $folder = $account->folder ?? General::codeFromString($account->username, $account);
@@ -534,7 +536,13 @@ class Lists
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
-	    public static function generateCineOttpremiumList(Account $account): void
+    /**
+     * Generate Cine Ott Premium list.
+     *
+     * @param  Account  $account
+     * @return void
+     */
+	public static function generateCineOttpremiumList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
         $folder = $account->folder ?? General::codeFromString($account->username, $account);
@@ -629,6 +637,12 @@ class Lists
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }	
 	
+    /**
+     * Generate Series list.
+     *
+     * @param  Account  $account
+     * @return void
+     */
     public static function generateSeriesList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
@@ -741,6 +755,12 @@ class Lists
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
+    /**
+     * Generate Series Premium list.
+     *
+     * @param  Account  $account
+     * @return void
+     */
     public static function generateSeriespremiumList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
@@ -853,7 +873,13 @@ class Lists
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
-	    public static function generateSeriesOttList(Account $account): void
+    /**
+     * Generate Series Ott list.
+     *
+     * @param  Account  $account
+     * @return void
+     */
+	public static function generateSeriesOttList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
         $folder = $account->folder ?? General::codeFromString($account->username, $account);
@@ -963,7 +989,13 @@ class Lists
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
-	    public static function generateSeriesOttpremiumList(Account $account): void
+    /**
+     * Generate Series Ott Premium list.
+     *
+     * @param  Account  $account
+     * @return void
+     */
+	public static function generateSeriesOttpremiumList(Account $account): void
     {
         $cdnToken = $account->token ?? '';
         $folder = $account->folder ?? General::codeFromString($account->username, $account);
@@ -1185,6 +1217,27 @@ class Lists
 
         $filename = 'kodi.m3u';
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
+    }
+
+    /**
+     * Check if the URL is a premium content URL based on known patterns.
+     *
+     * @param  string|null  $url
+     * @return bool
+     */
+    private static function ispremiumUrl(?string $url): bool
+    {
+        if (empty($url)) {
+            return false;
+        }
+
+        $patterns = [
+            'prod/dash/skymd',
+            'prod/dash/applmd',
+            'prod/dash/hbomd',
+        ];
+
+        return Str::contains($url, $patterns);
     }
 
     /**

@@ -71,15 +71,15 @@ class ListController extends Controller
         foreach ($accounts as $account) {
             Lists::generateTivimateList($account);
             Lists::generateOttList($account);
-			Lists::generateCineList($account);
-			Lists::generateSeriesList($account);
-			Lists::generateCinepremiumList($account);
-			Lists::generateSeriespremiumList($account);
-			Lists::generateCineOttList($account);
-			Lists::generateSeriesOttList($account);
-			Lists::generateCineOttpremiumList($account);
-			Lists::generateSeriesOttpremiumList($account);
+            Lists::generateCineList($account);
+            Lists::generateSeriesList($account);
+            Lists::generateCineOttList($account);
+            Lists::generateSeriesOttList($account);
             Lists::generateKodiList($account);
+            Lists::generateCineOttpremiumList($account);
+            Lists::generateSeriesOttpremiumList($account);
+            Lists::generateCinePremiumList($account);
+            Lists::generateSeriesPremiumList($account);
         }
 
         flashSuccessMessage('Listas actualizadas correctamente.');
