@@ -16,6 +16,21 @@ use Illuminate\Support\Facades\Artisan;
 
 class ChannelController extends Controller
 {
+    // null patterns = default (everything that doesn't match the others)
+    private const PLATFORM_PATTERNS = [
+        'Apple TV'       => ['dash/applmd'],
+        'HBO Max'        => ['dash/hbomd'],
+        'SkyShowtime'    => ['dash/skymd'],
+        'FlixOlé'        => ['dash/flixmd'],
+        'Movistar Plus+' => null,
+    ];
+
+    public const TYPE_CONFIG = [
+        'live'   => ['label' => 'Live',      'icon' => 'fas fa-broadcast-tower'],
+        'movie'  => ['label' => 'Películas', 'icon' => 'fas fa-film'],
+        'series' => ['label' => 'Series',    'icon' => 'fas fa-tv'],
+    ];
+
     /**
      * Create a new controller instance.
      *
@@ -29,40 +44,71 @@ class ChannelController extends Controller
     /**
      * Display a listing of the channels.
      */
-    public function index(Request $request): View|JsonResponse
+    public function index(Request $request, string $type): View|JsonResponse
     {
         if ($request->ajax()) {
-            return $this->getChannelsData($request);
+            return $this->getChannelsData($request, $type);
         }
 
-        return view('channels.index');
+        $config = self::TYPE_CONFIG[$type];
+        $categories = ChannelCategory::where('type', $type)->orderBy('order')->get();
+        return view('channels.index', compact('type', 'config', 'categories'));
     }
 
     /**
      * Get channels data for DataTables AJAX request.
      */
-    public function getChannelsData(Request $request): JsonResponse
+    public function getChannelsData(Request $request, string $type): JsonResponse
     {
-        $query = Channel::with('category');
+        $query = Channel::with('category')->where('tvg_type', $type);
 
-        // Filter by category type if provided
-        if ($request->has('type') && !empty($request->type)) {
-            $type = $request->type;
-            $query->whereHas('category', function ($q) use ($type) {
-                $q->where('type', $type);
-            });
+        // Handle platform filter
+        if ($request->filled('platform') && array_key_exists($request->platform, self::PLATFORM_PATTERNS)) {
+            $patterns = self::PLATFORM_PATTERNS[$request->platform];
+            if ($patterns === null) {
+                // Movistar Plus+: URLs that don't match any specific platform
+                $allPatterns = array_merge(...array_filter(array_values(self::PLATFORM_PATTERNS)));
+                foreach ($allPatterns as $p) {
+                    $query->where('url_channel', 'not like', "%{$p}%");
+                }
+            } else {
+                $query->where(function ($q) use ($patterns) {
+                    foreach ($patterns as $p) {
+                        $q->orWhere('url_channel', 'like', "%{$p}%");
+                    }
+                });
+            }
         }
 
         // Handle search
         if ($request->has('search') && !empty($request->search['value'])) {
             $searchValue = $request->search['value'];
             $query->where(function ($q) use ($searchValue) {
-                $q->where('name', 'like', "%{$searchValue}%")
-                    ->orWhere('tvg_id', 'like', "%{$searchValue}%")
-                    ->orWhere('tvg_type', 'like', "%{$searchValue}%")
-                    ->orWhereHas('category', function ($q) use ($searchValue) {
-                        $q->where('name', 'like', "%{$searchValue}%");
+                $search = "%{$searchValue}%";
+                $q->whereRaw('name COLLATE utf8mb4_unicode_ci LIKE ?', [$search])
+                    ->orWhereRaw('tvg_id COLLATE utf8mb4_unicode_ci LIKE ?', [$search])
+                    ->orWhereHas('category', function ($q) use ($search) {
+                        $q->whereRaw('name COLLATE utf8mb4_unicode_ci LIKE ?', [$search]);
                     });
+
+                // Platform search: match search term against platform names
+                foreach (self::PLATFORM_PATTERNS as $platform => $patterns) {
+                    if (!str_contains(strtolower($platform), strtolower($searchValue))) continue;
+
+                    if ($patterns === null) {
+                        // Movistar Plus+: URLs that don't match any specific pattern
+                        $allPatterns = array_merge(...array_filter(array_values(self::PLATFORM_PATTERNS)));
+                        $q->orWhere(function ($q2) use ($allPatterns) {
+                            foreach ($allPatterns as $p) {
+                                $q2->where('url_channel', 'not like', "%{$p}%");
+                            }
+                        });
+                    } else {
+                        foreach ($patterns as $p) {
+                            $q->orWhere('url_channel', 'like', "%{$p}%");
+                        }
+                    }
+                }
             });
         }
 
@@ -86,9 +132,6 @@ class ChannelController extends Controller
                 case 'apply_token':
                     $query->orderBy('apply_token', $orderDirection);
                     break;
-                case 'tvg_type':
-                    $query->orderBy('tvg_type', $orderDirection);
-                    break;
                 default:
                     $query->orderBy('id', 'asc');
             }
@@ -96,7 +139,7 @@ class ChannelController extends Controller
             $query->orderBy('id', 'asc');
         }
 
-        $totalRecords = Channel::count();
+        $totalRecords = Channel::where('tvg_type', $type)->count();
         $totalFiltered = $query->count();
 
         // Handle pagination
@@ -109,10 +152,10 @@ class ChannelController extends Controller
             $data[] = [
                 'name' => $channel->name,
                 'category' => $channel->category->name ?? 'Uncategorized',
+                'platform' => self::getPlatformFromUrl($channel->url_channel),
                 'apply_token' => $channel->apply_token ? 'Yes' : 'No',
                 'is_active' => $channel->is_active ? 'Yes' : 'No',
-                'tvg_type' => $channel->tvg_type ?? 'Undefined',
-                'edit_url' => route('channels.edit', $channel->id),
+                'edit_url' => route('channels.edit', ['type' => $type, 'channel' => $channel->id]),
             ];
         }
 
@@ -127,29 +170,30 @@ class ChannelController extends Controller
     /**
      * Show the form for creating a new channel.
      */
-    public function create(): View
+    public function create(string $type): View
     {
-        $categories = ChannelCategory::orderBy('order')->get();
-        return view('channels.create', compact('categories'));
+        $categories = ChannelCategory::where('type', $type)->orderBy('order')->get();
+        $config = self::TYPE_CONFIG[$type];
+        return view('channels.create', compact('categories', 'type', 'config'));
     }
 
     /**
      * Show the form for editing the channel.
      */
-    public function edit(Channel $channel): View
+    public function edit(string $type, Channel $channel): View
     {
-        $categories = ChannelCategory::orderBy('order')->get();
-        return view('channels.edit', compact('channel', 'categories'));
+        $categories = ChannelCategory::where('type', $type)->orderBy('order')->get();
+        $config = self::TYPE_CONFIG[$type];
+        return view('channels.edit', compact('channel', 'categories', 'type', 'config'));
     }
 
     /**
      * Store a new channel.
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, string $type): JsonResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'tvg_type' => 'required',
             'category_id' => 'required|exists:channel_categories,id',
             'tvg_id' => 'nullable|string|max:255',
             'logo' => 'required',
@@ -164,27 +208,28 @@ class ChannelController extends Controller
             'catchup_source' => 'nullable',
             'catchup_pssh' => 'nullable',
             'catchup_api_key' => 'nullable',
+
             'is_active' => 'required|boolean',
             'apply_token' => 'required|boolean',
             'parental_control' => 'required|boolean',
         ]);
 
+        $data['tvg_type'] = $type;
         $data['order'] = Channel::max('order') + 1;
 
         $channel = Channel::create($data);
 
         flashSuccessMessage('Canal creado correctamente.');
-        return jsonIframeRedirection(route('channels.edit', $channel->id));
+        return jsonIframeRedirection(route('channels.edit', ['type' => $type, 'channel' => $channel->id]));
     }
 
     /**
      * Update the specified channel.
      */
-    public function update(Request $request, Channel $channel): JsonResponse
+    public function update(Request $request, string $type, Channel $channel): JsonResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'tvg_type' => 'required',
             'category_id' => 'required|exists:channel_categories,id',
             'tvg_id' => 'nullable|string|max:255',
             'logo' => 'required',
@@ -199,21 +244,23 @@ class ChannelController extends Controller
             'catchup_source' => 'nullable',
             'catchup_pssh' => 'nullable',
             'catchup_api_key' => 'nullable',
+
             'is_active' => 'required|boolean',
             'apply_token' => 'required|boolean',
             'parental_control' => 'required|boolean',
         ]);
 
+        $data['tvg_type'] = $type;
         $channel->update($data);
 
         flashSuccessMessage('Canal actualizado correctamente.');
-        return jsonIframeRedirection(route('channels.edit', $channel->id));
+        return jsonIframeRedirection(route('channels.edit', ['type' => $type, 'channel' => $channel->id]));
     }
 
     /**
      * Reorder channels.
      */
-    public function reorder(Request $request): JsonResponse
+    public function reorder(Request $request, string $type): JsonResponse
     {
         $data = $request->validate([
             'order'         => 'required|array',
@@ -232,25 +279,25 @@ class ChannelController extends Controller
     /**
      * Duplicate the specified channel.
      */
-    public function duplicate(Channel $channel): JsonResponse
+    public function duplicate(string $type, Channel $channel): JsonResponse
     {
         $newChannel = $channel->replicate();
         $newChannel->name .= ' (Copia)';
         $newChannel->save();
 
         flashSuccessMessage('Canal duplicado correctamente.');
-        return jsonIframeRedirection(route('channels.edit', $newChannel->id));
+        return jsonIframeRedirection(route('channels.edit', ['type' => $type, 'channel' => $newChannel->id]));
     }
 
     /**
      * Remove the specified channel.
      */
-    public function destroy(Channel $channel): JsonResponse
+    public function destroy(string $type, Channel $channel): JsonResponse
     {
         $channel->delete();
 
         flashSuccessMessage('Canal eliminado correctamente.');
-        return jsonIframeRedirection(route('channels.index'));
+        return jsonIframeRedirection(route('channels.index', $type));
     }
 
     /**
@@ -261,7 +308,6 @@ class ChannelController extends Controller
         $request->validate(['archivo' => 'required|file']);
 
         $file = $request->file('archivo');
-        // Guarda o sobreescribe el archivo con nombre fijo
         Storage::putFileAs('', $file, 'total_ott.m3u');
 
         return response()->json(['success' => true]);
@@ -289,7 +335,7 @@ class ChannelController extends Controller
         }
     }
 
-    public function checkKeys(Channel $channel): JsonResponse
+    public function checkKeys(string $type, Channel $channel): JsonResponse
     {
         $username = config('services.iptv.token_account');
         $account = Account::where('username', $username)->first();
@@ -338,18 +384,8 @@ class ChannelController extends Controller
                 $channel->save();
 
                 $accounts = Account::all();
-                foreach ($accounts as $account) {
-                    Lists::generateTivimateList($account);
-                    Lists::generateOttList($account);
-                    Lists::generateCineList($account);
-                    Lists::generateSeriesList($account);
-                    Lists::generateCineOttList($account);
-                    Lists::generateSeriesOttList($account);
-                    Lists::generateKodiList($account);
-                    Lists::generateCineOttpremiumList($account);
-                    Lists::generateSeriesOttpremiumList($account);
-                    Lists::generateCinePremiumList($account);
-                    Lists::generateSeriesPremiumList($account);
+                foreach ($accounts as $acc) {
+                    self::generateListsByType($channel->tvg_type, $acc);
                 }
             }
         } catch (\Exception $e) {
@@ -378,7 +414,7 @@ class ChannelController extends Controller
     /**
      * Check and update only catchup PSSH and keys for a channel.
      */
-    public function checkCatchupKeys(Channel $channel): JsonResponse
+    public function checkCatchupKeys(string $type, Channel $channel): JsonResponse
     {
         $username = config('services.iptv.token_account');
         $account = Account::where('username', $username)->first();
@@ -427,18 +463,8 @@ class ChannelController extends Controller
                 $channel->save();
 
                 $accounts = Account::all();
-                foreach ($accounts as $account) {
-                    Lists::generateTivimateList($account);
-                    Lists::generateOttList($account);
-                    Lists::generateCineList($account);
-                    Lists::generateSeriesList($account);
-                    Lists::generateCineOttList($account);
-                    Lists::generateSeriesOttList($account);
-                    Lists::generateKodiList($account);
-                    Lists::generateCineOttpremiumList($account);
-                    Lists::generateSeriesOttpremiumList($account);
-                    Lists::generateCinePremiumList($account);
-                    Lists::generateSeriesPremiumList($account);
+                foreach ($accounts as $acc) {
+                    self::generateListsByType($channel->tvg_type, $acc);
                 }
             }
         } catch (\Exception $e) {
@@ -462,5 +488,50 @@ class ChannelController extends Controller
             'status' => $status,
             'message' => $catchupPsshMsg . " " . $catchupKeysMsg
         ]);
+    }
+
+    /**
+     * Detect the streaming platform from the channel URL.
+     */
+    private static function getPlatformFromUrl(?string $url): string
+    {
+        if (empty($url)) {
+            return '';
+        }
+
+        foreach (self::PLATFORM_PATTERNS as $platform => $patterns) {
+            if ($patterns === null) continue;
+            foreach ($patterns as $pattern) {
+                if (str_contains($url, $pattern)) return $platform;
+            }
+        }
+
+        return 'Movistar Plus+';
+    }
+
+    /**
+     * Generate lists scoped by channel type.
+     */
+    public static function generateListsByType(string $type, Account $account): void
+    {
+        match ($type) {
+            'live' => (function () use ($account) {
+                Lists::generateTivimateList($account);
+                Lists::generateOttList($account);
+                Lists::generateKodiList($account);
+            })(),
+            'movie' => (function () use ($account) {
+                Lists::generateCineList($account);
+                Lists::generateCinePremiumList($account);
+                Lists::generateCineOttList($account);
+                Lists::generateCineOttpremiumList($account);
+            })(),
+            'series' => (function () use ($account) {
+                Lists::generateSeriesList($account);
+                Lists::generateSeriesPremiumList($account);
+                Lists::generateSeriesOttList($account);
+                Lists::generateSeriesOttpremiumList($account);
+            })(),
+        };
     }
 }

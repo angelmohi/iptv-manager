@@ -67,15 +67,21 @@
         </div>
         <ul class="sidebar-nav" data-coreui="navigation" data-simplebar="">
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('channel-categories.index') }}">
-                    <i class="nav-icon fas fa-list"></i>
-                    Categorías de Canales
+                <a class="nav-link" href="{{ route('channels.index', 'live') }}">
+                    <i class="nav-icon fas fa-broadcast-tower"></i>
+                    Live
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('channels.index') }}">
+                <a class="nav-link" href="{{ route('channels.index', 'movie') }}">
+                    <i class="nav-icon fas fa-film"></i>
+                    Películas
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('channels.index', 'series') }}">
                     <i class="nav-icon fas fa-tv"></i>
-                    Canales
+                    Series
                 </a>
             </li>
             <li class="nav-item">
@@ -86,7 +92,7 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('difusion.epg') }}">
-                    <i class="nav-icon fas fa-broadcast-tower"></i>
+                    <i class="nav-icon fas fa-satellite-dish"></i>
                     DIFUSION EPG
                 </a>
             </li>

@@ -20,95 +20,76 @@ class ChannelCategoryController extends Controller
     }
 
     /**
-     * Display a listing of the categories.
-     */
-    public function index(): View
-    {
-        $liveCategories = ChannelCategory::where('type', 'live')
-            ->orderBy('order')
-            ->get();
-
-        $movieCategories = ChannelCategory::where('type', 'movie')
-            ->orderBy('order')
-            ->get();
-
-        $seriesCategories = ChannelCategory::where('type', 'series')
-            ->orderBy('order')
-            ->get();
-
-        return view('channel-categories.index', compact('liveCategories', 'movieCategories', 'seriesCategories'));
-    }
-
-    /**
      * Show the form for creating a new category.
      */
-    public function create(): View
+    public function create(string $type): View
     {
-        return view('channel-categories.create');
+        $config = ChannelController::TYPE_CONFIG[$type];
+        return view('channel-categories.create', compact('type', 'config'));
     }
 
     /**
      * Show the form for editing the category.
      */
-    public function edit(ChannelCategory $category): View
+    public function edit(string $type, ChannelCategory $category): View
     {
-        return view('channel-categories.edit', compact('category'));
+        $config = ChannelController::TYPE_CONFIG[$type];
+        return view('channel-categories.edit', compact('category', 'type', 'config'));
     }
 
     /**
      * Store a new category.
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, string $type): JsonResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|in:live,movie,series',
         ]);
 
+        $data['type'] = $type;
         $data['order'] = ChannelCategory::max('order') + 1;
 
         $category = ChannelCategory::create($data);
 
         flashSuccessMessage('Categoría creada correctamente.');
-        return jsonIframeRedirection(route('channel-categories.edit', $category->id));
+        return jsonIframeRedirection(route('channel-categories.edit', ['type' => $type, 'category' => $category->id]));
     }
 
     /**
      * Update the specified category.
      */
-    public function update(Request $request, ChannelCategory $category): JsonResponse
+    public function update(Request $request, string $type, ChannelCategory $category): JsonResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|in:live,movie,series',
         ]);
 
         $category->update($data);
 
         flashSuccessMessage('Categoría actualizada correctamente.');
-        return jsonIframeRedirection(route('channel-categories.edit', $category->id));
+        return jsonIframeRedirection(route('channel-categories.edit', ['type' => $type, 'category' => $category->id]));
     }
 
     /**
      * Remove the specified category.
      */
-    public function destroy(ChannelCategory $category): JsonResponse
+    public function destroy(string $type, ChannelCategory $category): JsonResponse
     {
         if ($category->channels()->count() > 0) {
             flashDangerMessage('No se puede eliminar la categoría porque tiene canales asociados.');
-            return jsonIframeRedirection(route('channel-categories.edit', $category->id));
+            return jsonIframeRedirection(route('channel-categories.edit', ['type' => $type, 'category' => $category->id]));
         }
 
         $category->delete();
 
         flashSuccessMessage('Categoría eliminada correctamente.');
-        return jsonIframeRedirection(route('channel-categories.index'));
+        return jsonIframeRedirection(route('channels.index', $type));
     }
 
     /**
      * Reorder categories.
      */
-    public function reorder(Request $request): JsonResponse
+    public function reorder(Request $request, string $type): JsonResponse
     {
         $data = $request->validate([
             'order' => 'required|array',

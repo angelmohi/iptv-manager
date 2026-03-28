@@ -49,7 +49,7 @@ Route::prefix('users')->controller(UserController::class)->group(function () {
 });
 
 Route::prefix('lists')->controller(ListController::class)->group(function () {
-    Route::post('/update', 'update')->name('lists.update');
+    Route::post('/update/{type}', 'update')->where('type', 'live|movie|series')->name('lists.update');
     Route::get('/tivimate/{folder}', 'downloadTivimate')->name('lists.download.tivimate');
     Route::get('/ott/{folder}', 'downloadOtt')->name('lists.download.ott');
     Route::get('/cine/{folder}', 'downloadCine')->name('lists.download.cine');
@@ -63,27 +63,28 @@ Route::prefix('lists')->controller(ListController::class)->group(function () {
     Route::get('/kodi/{folder}', 'downloadKodi')->name('lists.download.kodi');
 });
 
-Route::prefix('channel-categories')->controller(ChannelCategoryController::class)->group(function () {
-    Route::get('/', 'index')->name('channel-categories.index');
-    Route::get('/create', 'create')->name('channel-categories.create');
-    Route::get('/edit/{category}', 'edit')->name('channel-categories.edit');
-    Route::post('/', 'store')->name('channel-categories.store');
-    Route::put('/{category}', 'update')->name('channel-categories.update');
-    Route::delete('/{category}', 'destroy')->name('channel-categories.destroy');
-    Route::post('/reorder', 'reorder')->name('channel-categories.reorder');
-});
+Route::prefix('{type}')->where(['type' => 'live|movie|series'])->group(function () {
+    Route::controller(ChannelController::class)->group(function () {
+        Route::get('/', 'index')->name('channels.index');
+        Route::get('/create', 'create')->name('channels.create');
+        Route::get('/edit/{channel}', 'edit')->name('channels.edit');
+        Route::post('/', 'store')->name('channels.store');
+        Route::put('/{channel}', 'update')->name('channels.update');
+        Route::delete('/{channel}', 'destroy')->name('channels.destroy');
+        Route::post('/reorder', 'reorder')->name('channels.reorder');
+        Route::post('/duplicate/{channel}', 'duplicate')->name('channels.duplicate');
+        Route::post('/check-keys/{channel}', 'checkKeys')->name('channels.check-keys');
+        Route::post('/check-catchup-keys/{channel}', 'checkCatchupKeys')->name('channels.check-catchup-keys');
+    });
 
-Route::prefix('channels')->controller(ChannelController::class)->group(function () {
-    Route::get('/', 'index')->name('channels.index');
-    Route::get('/create', 'create')->name('channels.create');
-    Route::get('/edit/{channel}', 'edit')->name('channels.edit');
-    Route::post('/', 'store')->name('channels.store');
-    Route::put('/{channel}', 'update')->name('channels.update');
-    Route::delete('/{channel}', 'destroy')->name('channels.destroy');
-    Route::post('/reorder', 'reorder')->name('channels.reorder');
-    Route::post('/duplicate/{channel}', 'duplicate')->name('channels.duplicate');
-    Route::post('/check-keys/{channel}', 'checkKeys')->name('channels.check-keys');
-    Route::post('/check-catchup-keys/{channel}', 'checkCatchupKeys')->name('channels.check-catchup-keys');
+    Route::prefix('categories')->controller(ChannelCategoryController::class)->group(function () {
+        Route::get('/create', 'create')->name('channel-categories.create');
+        Route::post('/', 'store')->name('channel-categories.store');
+        Route::get('/{category}/edit', 'edit')->name('channel-categories.edit');
+        Route::put('/{category}', 'update')->name('channel-categories.update');
+        Route::delete('/{category}', 'destroy')->name('channel-categories.destroy');
+        Route::post('/reorder', 'reorder')->name('channel-categories.reorder');
+    });
 });
 
 Route::get('/logs', [ChannelHistoryController::class, 'index'])->name('logs.index');

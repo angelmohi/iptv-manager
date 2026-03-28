@@ -63,27 +63,17 @@ class ListController extends Controller
     }
 
     /**
-     * Update the lists.
+     * Update the lists for a specific channel type.
      */
-    public function update() : JsonResponse
+    public function update(string $type) : JsonResponse
     {
         $accounts = Account::all();
         foreach ($accounts as $account) {
-            Lists::generateTivimateList($account);
-            Lists::generateOttList($account);
-            Lists::generateCineList($account);
-            Lists::generateSeriesList($account);
-            Lists::generateCineOttList($account);
-            Lists::generateSeriesOttList($account);
-            Lists::generateKodiList($account);
-            Lists::generateCineOttpremiumList($account);
-            Lists::generateSeriesOttpremiumList($account);
-            Lists::generateCinePremiumList($account);
-            Lists::generateSeriesPremiumList($account);
+            ChannelController::generateListsByType($type, $account);
         }
 
         flashSuccessMessage('Listas actualizadas correctamente.');
-        return jsonIframeRedirection(route('channels.index'));
+        return jsonIframeRedirection(route('channels.index', $type));
     }
 
     /**

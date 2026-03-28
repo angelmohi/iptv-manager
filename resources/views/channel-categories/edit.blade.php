@@ -6,33 +6,33 @@
     <div class="card-body m-2">
         <div class="d-flex justify-content-between">
             <div>
-                <h4 class="card-title align-middle d-inline pt-2">Editar categoría</h4>
+                <h4 class="card-title align-middle d-inline pt-2">Editar categoría - {{ $config['label'] }}</h4>
             </div>
 
             <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with buttons">
-                <a class="btn btn-outline-secondary" type="button" href="{{ route('channel-categories.index') }}" >
+                <a class="btn btn-outline-secondary" type="button" href="{{ route('channels.index', $type) }}" >
                     <i class="fas fa-chevron-left mr-2"></i> Volver
                 </a>
             </div>
         </div>
         <hr>
-        <form method="POST" action="{{ route('channel-categories.update', $category->id) }}">
+        <form method="POST" action="{{ route('channel-categories.update', ['type' => $type, 'category' => $category->id]) }}">
             @csrf
             @method('PUT')
             @include('channel-categories._form', ['editing' => true])
         </form>
         @if ($category->channels()->count() > 0)
         <hr class="mt-4">
-        <h4 class="mt-4">Canales en “{{ $category->name }}”</h4>
+        <h4 class="mt-4">Canales en "{{ $category->name }}"</h4>
         <div class="mt-4">
           <ul id="channels-list" class="list-group">
             @foreach($category->channels()->orderBy('order')->get() as $channel)
               <li class="list-group-item d-flex justify-content-between align-items-center"
                   data-id="{{ $channel->id }}">
-                
+
                 <span>
                   {{ $channel->name }}
-                  <a target="_blank" href="{{ route('channels.edit', $channel->id) }}" class="text-decoration-none text-primary ms-1"
+                  <a target="_blank" href="{{ route('channels.edit', ['type' => $category->type, 'channel' => $channel->id]) }}" class="text-decoration-none text-primary ms-1"
                       title="Editar canal">
                     <i class="fas fa-edit"></i>
                   </a>
@@ -63,10 +63,10 @@
 @endpush
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const list = document.getElementById('channels-list');
+    if (!list) return;
     Sortable.create(list, {
       handle: '.handle',
       animation: 150,
@@ -76,7 +76,7 @@
           order: idx + 1
         }));
 
-        fetch("{{ route('channels.reorder') }}", {
+        fetch("{{ route('channels.reorder', $category->type) }}", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -96,12 +96,12 @@
     });
   });
 
-  var deleteUrl = "{{ route('channel-categories.destroy', $category->id) }}";
+  var deleteUrl = "{{ route('channel-categories.destroy', ['type' => $type, 'category' => $category->id]) }}";
   $(document).ready(function() {
       $('#delete-category').on('click', function (event) {
           event.preventDefault();
           CommonFunctions.notificationConfirmDelete(
-              "¿Estás seguro de eliminar la categoría “{{ $category->name }}”?",
+              "¿Estás seguro de eliminar la categoría \u201c{{ $category->name }}\u201d?",
               'Eliminar',
               deleteUrl
           );

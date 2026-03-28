@@ -13,19 +13,15 @@
         <div class="row mt-3">
             <div class="col-12 col-sm-12 col-md-6 form-group">
                 <label for="f-tvg_type">Tipo de canal</label>
-				<select class="form-control" id="f-tvg_type" name="tvg_type">
-					<option value="live" {{ (isset($channel) && $channel->tvg_type === 'live') ? 'selected' : '' }}>Live</option>
-					<option value="movie" {{ (isset($channel) && $channel->tvg_type === 'movie') ? 'selected' : '' }}>Movie</option>
-					<option value="series" {{ (isset($channel) && $channel->tvg_type === 'series') ? 'selected' : '' }}>Series</option>
-				</select>
+                <input type="hidden" name="tvg_type" value="{{ $type }}">
+                <input type="text" class="form-control" disabled value="{{ $config['label'] }}">
             </div>
             <div class="col-12 col-sm-12 col-md-6 form-group">
                 <label for="f-category_id">Categoría</label>
                 <select class="form-control select2" id="f-category_id" name="category_id">
                     <option value="">Selecciona una categoría</option>
                     @foreach ($categories as $category)
-                        <option value="{{ $category->id }}" 
-                                data-type="{{ $category->type }}"
+                        <option value="{{ $category->id }}"
                                 {{ (isset($channel) && $channel->category_id == $category->id) ? 'selected' : '' }}>
                             {{ $category->name }}
                         </option>
@@ -136,7 +132,7 @@
 						<a href="#" id="delete-channel" class="btn btn-outline-danger">Eliminar</a>
 					@endif
 				</div>
-                @if ($editing && $channel->tvg_type == 'live')
+                @if ($editing && $type == 'live')
                     <div class="d-flex ms-auto gap-2">
                         <button type="button" id="check-keys" class="btn btn-outline-info">Comprobar Keys</button>
                         <button type="button" id="check-catchup-keys" class="btn btn-outline-info">Comprobar Catchup Keys</button>
@@ -200,56 +196,13 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Store all categories on page load
-    let allCategories = [];
-    $('#f-category_id option').each(function() {
-        allCategories.push({
-            id: $(this).val(),
-            text: $(this).text(),
-            type: $(this).data('type')
-        });
+    // Initialize Select2 for category selector
+    $('#f-category_id').select2({
+        placeholder: 'Selecciona una categoría',
+        allowClear: true,
+        width: '100%'
     });
-    
-    // Function to filter categories based on channel type
-    function filterCategories() {
-        const selectedType = $('#f-tvg_type').val();
-        const categorySelect = $('#f-category_id');
-        const currentValue = categorySelect.val();
-        
-        // Destroy Select2 if it exists
-        if (categorySelect.hasClass('select2-hidden-accessible')) {
-            categorySelect.select2('destroy');
-        }
-        
-        // Clear all options
-        categorySelect.empty();
-        
-        // Add filtered options
-        allCategories.forEach(function(category) {
-            // Always add empty option or matching type
-            if (category.id === '' || !selectedType || category.type === selectedType) {
-                const option = new Option(category.text, category.id, false, category.id === currentValue);
-                $(option).data('type', category.type);
-                categorySelect.append(option);
-            }
-        });
-        
-        // Initialize Select2 with search
-        categorySelect.select2({
-            placeholder: 'Selecciona una categoría',
-            allowClear: true,
-            width: '100%'
-        });
-    }
-    
-    // Filter on page load
-    filterCategories();
-    
-    // Filter when type changes
-    $('#f-tvg_type').on('change', function() {
-        filterCategories();
-    });
-    
+
     const checkKeysBtn = document.getElementById('check-keys');
     if (checkKeysBtn) {
         checkKeysBtn.addEventListener('click', function() {
@@ -257,7 +210,7 @@ $(document).ready(function() {
             checkKeysBtn.disabled = true;
             checkKeysBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Comprobando...';
 
-            fetch("{{ route('channels.check-keys', $channel->id) }}", {
+            fetch("{{ route('channels.check-keys', ['type' => $type, 'channel' => $channel->id]) }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -276,7 +229,7 @@ $(document).ready(function() {
                     if (data.keys_updated) {
                         document.getElementById('f-api_key').value = data.api_key;
                     }
-                    
+
                     swal({
                         title: 'Resultado',
                         text: data.message,
@@ -311,7 +264,7 @@ $(document).ready(function() {
             checkCatchupBtn.disabled = true;
             checkCatchupBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Comprobando...';
 
-            fetch("{{ route('channels.check-catchup-keys', $channel->id) }}", {
+            fetch("{{ route('channels.check-catchup-keys', ['type' => $type, 'channel' => $channel->id]) }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
