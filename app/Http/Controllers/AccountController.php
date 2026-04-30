@@ -102,19 +102,21 @@ class AccountController extends Controller
     public function generateToken(Account $account) : JsonResponse
     {
         try {
-            Token::refreshCdnToken($account);
-            Lists::generateTivimateList($account);
-            Lists::generateOttList($account);
-            Lists::generateCineList($account);
-            Lists::generateSeriesList($account);
-            Lists::generateCineOttList($account);
-            Lists::generateSeriesOttList($account);
-            Lists::generateKodiList($account);
-            Lists::generateCineOttpremiumList($account);
-            Lists::generateSeriesOttpremiumList($account);
-            Lists::generateCinePremiumList($account);
-            Lists::generateSeriesPremiumList($account);
-        } catch (TokenException $e) {
+			Token::refreshCdnToken($account);
+			Log::info('Token renovado, iniciando generación de listas para: ' . $account->folder);
+			Lists::generateTivimateList($account);
+			Log::info('Tivimate generado');
+			Lists::generateOttList($account);
+			Lists::generateCineList($account);
+			Lists::generateSeriesList($account);
+			Lists::generateCineHboList($account);
+			Lists::generateCineAppletvList($account);
+			Lists::generateCineSkyList($account);
+			Lists::generateSeriesHboList($account);
+			Lists::generateSeriesAppletvList($account);
+			Lists::generateSeriesSkyList($account);
+			Lists::generateKodiList($account);
+		} catch (TokenException $e) {
             Log::error($e);
             flashDangerMessage($e->getMessage());
             return jsonIframeRedirection("");

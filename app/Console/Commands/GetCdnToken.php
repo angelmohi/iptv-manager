@@ -35,16 +35,16 @@ class GetCdnToken extends Command
                 $result = Token::refreshCdnToken($account);
                 Log::info("CDN Token obtenido: {$result['cdnToken']}");
                 Lists::generateTivimateList($account);
-                Lists::generateOttList($account);
-                Lists::generateCineList($account);
-                Lists::generateSeriesList($account);
-                Lists::generateCineOttList($account);
-                Lists::generateSeriesOttList($account);
-                Lists::generateKodiList($account);
-                Lists::generateCineOttpremiumList($account);
-                Lists::generateSeriesOttpremiumList($account);
-                Lists::generateCinePremiumList($account);
-                Lists::generateSeriesPremiumList($account);
+				Lists::generateOttList($account);
+				Lists::generateCineList($account);
+				Lists::generateSeriesList($account);
+				Lists::generateCineHboList($account);
+				Lists::generateCineAppletvList($account);
+				Lists::generateCineSkyList($account);
+				Lists::generateSeriesHboList($account);
+				Lists::generateSeriesAppletvList($account);
+				Lists::generateSeriesSkyList($account);
+				Lists::generateKodiList($account);
                 Log::info('CDN Token obtenido y reemplazado correctamente en los archivos.');
             }
             catch (TokenException $e) {

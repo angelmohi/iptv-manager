@@ -333,311 +333,6 @@ class Lists
     }
 	
     /**
-     * Generate Cine Premium list.
-     *
-     * @param  Account  $account
-     * @return void
-     */
-    public static function generateCinepremiumList(Account $account): void
-    {
-        $cdnToken = $account->token ?? '';
-        $folder = $account->folder ?? General::codeFromString($account->username, $account);
-
-        // Create the folder if it doesn't exist
-        if (!Storage::disk('local')->exists($folder)) {
-            Storage::disk('local')->makeDirectory($folder);
-        }
-
-        $queryChannels = Channel::with('category')
-			->where([
-				['is_active', true],
-				['tvg_type', 'movie'],
-			]);
-
-        if ($account->parental_control) {
-            $queryChannels->where('parental_control', false);
-        }
-
-        $channels = $queryChannels->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
-			->orderBy('channels.name', 'asc')   // sigue existiendo, no se toca
-			->select('channels.*')
-			->get();
-
-		// Reordenar en PHP ignorando ! ? ¡ ¿ en el nombre del canal
-		$channels = $channels->sortBy(function ($channel) {
-			$name  = $channel->name ?? '';
-			// 1) Quitar signos de puntuación que no quieres tener en cuenta
-			$clean = preg_replace('/[!?¡¿]/u', '', $name);
-
-			// 2) Convertir a ASCII para eliminar tildes/acentos: Á → A, É → E, etc.
-			$clean = Str::ascii($clean);
-
-			// 3) Normalizar a minúsculas
-			return mb_strtolower(trim($clean), 'UTF-8');
-		})->values();
-
-		// Generate list for Cine
-		$cinepremiumLines = ['#EXTM3U'];
-		$cinepremiumLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
-		$cinepremiumLines[] = '';
-
-		foreach ($channels as $channel) {
-			// Excluir los premium de la lista normal de cine
-			if (!self::ispremiumUrl($channel->url_channel)) {
-				continue;
-			}
-
-			$extinf = '#EXTINF:-1';
-
-			if ($channel->category && !empty($channel->category->name)) {
-                $extinf .= ' group-title="' . $channel->category->name . '"';
-            }
-			$extinf .= ' tvg-type="movie"';
-			if (!empty($channel->logo)) {
-                $extinf .= ' tvg-logo="' . $channel->logo . '"';
-            }
-            if (!empty($channel->name)) {
-                $extinf .= ' tvg-name="' . $channel->name . '"';
-            }
-            $extinf .= ',' . $channel->name;
-            $cinepremiumLines[] = $extinf;
-
-            if (!empty($channel->user_agent)) {
-                $cinepremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
-            }
-            if (!empty($channel->manifest_type)) {
-                $cinepremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
-            }
-            if (!empty($channel->license_type)) {
-                $cinepremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
-            }
-            if (!empty($channel->api_key)) {
-                $license = $channel->api_key;
-                if (!empty($channel->catchup_api_key)) {
-                    $license .= ',' . $channel->catchup_api_key;
-                }
-                $cinepremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
-            }
-            if ($channel->apply_token) {
-                $cinepremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
-            }
-            if (!empty($channel->url_channel) && $channel->apply_token) {
-                $cinepremiumLines[] = $channel->url_channel . '|X-TCDN-token=' . $cdnToken;
-            } else if (!empty($channel->url_channel)) {
-                $cinepremiumLines[] = $channel->url_channel;
-            }
-            $cinepremiumLines[] = '';
-        }
-
-        $content = implode("\n", $cinepremiumLines);
-
-        $filename = 'cinepremium.m3u';
-        Storage::disk('local')->put("{$folder}/{$filename}", $content);
-    }
-	
-    /**
-     * Generate Cine Ott list.
-     *
-     * @param  Account  $account
-     * @return void
-     */
-	public static function generateCineOttList(Account $account): void
-    {
-        $cdnToken = $account->token ?? '';
-        $folder = $account->folder ?? General::codeFromString($account->username, $account);
-
-        // Create the folder if it doesn't exist
-        if (!Storage::disk('local')->exists($folder)) {
-            Storage::disk('local')->makeDirectory($folder);
-        }
-
-        $queryChannels = Channel::with('category')
-			->where([
-				['is_active', true],
-				['tvg_type', 'movie'],
-			]);
-
-        if ($account->parental_control) {
-            $queryChannels->where('parental_control', false);
-        }
-
-        $channels = $queryChannels->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
-			->orderBy('channels.name', 'asc')   // sigue existiendo, no se toca
-			->select('channels.*')
-			->get();
-
-		// Reordenar en PHP ignorando ! ? ¡ ¿ en el nombre del canal
-		$channels = $channels->sortBy(function ($channel) {
-			$name  = $channel->name ?? '';
-			// 1) Quitar signos de puntuación que no quieres tener en cuenta
-			$clean = preg_replace('/[!?¡¿]/u', '', $name);
-
-			// 2) Convertir a ASCII para eliminar tildes/acentos: Á → A, É → E, etc.
-			$clean = Str::ascii($clean);
-
-			// 3) Normalizar a minúsculas
-			return mb_strtolower(trim($clean), 'UTF-8');
-		})->values();
-
-		// Generate list for Cine
-		$cineOttLines = ['#EXTM3U'];
-		$cineOttLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
-		$cineOttLines[] = '';
-
-		foreach ($channels as $channel) {
-			// Excluir los premium de la lista normal de cine
-			if (self::ispremiumUrl($channel->url_channel)) {
-				continue;
-			}
-
-			$extinf = '#EXTINF:-1';
-
-			if ($channel->category && !empty($channel->category->name)) {
-                $extinf .= ' group-title="' . $channel->category->name . '"';
-            }
-			$extinf .= ' tvg-type="movie"';
-			if (!empty($channel->logo)) {
-                $extinf .= ' tvg-logo="' . $channel->logo . '"';
-            }
-            if (!empty($channel->name)) {
-                $extinf .= ' tvg-name="' . $channel->name . '"';
-            }
-            $extinf .= ',' . $channel->name;
-            $cineOttLines[] = $extinf;
-
-            if (!empty($channel->user_agent)) {
-                $cineOttLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
-            }
-            if (!empty($channel->manifest_type)) {
-                $cineOttLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
-            }
-            if (!empty($channel->license_type)) {
-                $cineOttLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
-            }
-            if (!empty($channel->api_key)) {
-                $license = $channel->api_key;
-                if (!empty($channel->catchup_api_key)) {
-                    $license .= ',' . $channel->catchup_api_key;
-                }
-                $cineOttLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
-            }
-            if ($channel->apply_token) {
-                $cineOttLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
-            }
-            if (!empty($channel->url_channel)) {
-                $cineOttLines[] = $channel->url_channel;
-            }
-            $cineOttLines[] = '';
-        }
-
-        $content = implode("\n", $cineOttLines);
-
-        $filename = 'cineOtt.m3u';
-        Storage::disk('local')->put("{$folder}/{$filename}", $content);
-    }
-	
-    /**
-     * Generate Cine Ott Premium list.
-     *
-     * @param  Account  $account
-     * @return void
-     */
-	public static function generateCineOttpremiumList(Account $account): void
-    {
-        $cdnToken = $account->token ?? '';
-        $folder = $account->folder ?? General::codeFromString($account->username, $account);
-
-        // Create the folder if it doesn't exist
-        if (!Storage::disk('local')->exists($folder)) {
-            Storage::disk('local')->makeDirectory($folder);
-        }
-
-        $queryChannels = Channel::with('category')
-			->where([
-				['is_active', true],
-				['tvg_type', 'movie'],
-			]);
-
-        if ($account->parental_control) {
-            $queryChannels->where('parental_control', false);
-        }
-
-        $channels = $queryChannels->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
-			->orderBy('channels.name', 'asc')   // sigue existiendo, no se toca
-			->select('channels.*')
-			->get();
-
-		// Reordenar en PHP ignorando ! ? ¡ ¿ en el nombre del canal
-		$channels = $channels->sortBy(function ($channel) {
-			$name  = $channel->name ?? '';
-			// 1) Quitar signos de puntuación que no quieres tener en cuenta
-			$clean = preg_replace('/[!?¡¿]/u', '', $name);
-
-			// 2) Convertir a ASCII para eliminar tildes/acentos: Á → A, É → E, etc.
-			$clean = Str::ascii($clean);
-
-			// 3) Normalizar a minúsculas
-			return mb_strtolower(trim($clean), 'UTF-8');
-		})->values();
-
-		// Generate list for Cine
-		$cineOttpremiumLines = ['#EXTM3U'];
-		$cineOttpremiumLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
-		$cineOttpremiumLines[] = '';
-
-		foreach ($channels as $channel) {
-			// Excluir los premium de la lista normal de cine
-			if (!self::ispremiumUrl($channel->url_channel)) {
-				continue;
-			}
-
-			$extinf = '#EXTINF:-1';
-
-			if ($channel->category && !empty($channel->category->name)) {
-                $extinf .= ' group-title="' . $channel->category->name . '"';
-            }
-			$extinf .= ' tvg-type="movie"';
-			if (!empty($channel->logo)) {
-                $extinf .= ' tvg-logo="' . $channel->logo . '"';
-            }
-            if (!empty($channel->name)) {
-                $extinf .= ' tvg-name="' . $channel->name . '"';
-            }
-            $extinf .= ',' . $channel->name;
-            $cineOttpremiumLines[] = $extinf;
-
-            if (!empty($channel->user_agent)) {
-                $cineOttpremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
-            }
-            if (!empty($channel->manifest_type)) {
-                $cineOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
-            }
-            if (!empty($channel->license_type)) {
-                $cineOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
-            }
-            if (!empty($channel->api_key)) {
-                $license = $channel->api_key;
-                if (!empty($channel->catchup_api_key)) {
-                    $license .= ',' . $channel->catchup_api_key;
-                }
-                $cineOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
-            }
-            if ($channel->apply_token) {
-                $cineOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
-            }
-            if (!empty($channel->url_channel)) {
-                $cineOttpremiumLines[] = $channel->url_channel;
-            }
-            $cineOttpremiumLines[] = '';
-        }
-
-        $content = implode("\n", $cineOttpremiumLines);
-
-        $filename = 'cineOttpremium.m3u';
-        Storage::disk('local')->put("{$folder}/{$filename}", $content);
-    }	
-	
-    /**
      * Generate Series list.
      *
      * @param  Account  $account
@@ -755,356 +450,402 @@ class Lists
         Storage::disk('local')->put("{$folder}/{$filename}", $content);
     }
 	
-    /**
-     * Generate Series Premium list.
-     *
-     * @param  Account  $account
-     * @return void
-     */
-    public static function generateSeriespremiumList(Account $account): void
-    {
-        $cdnToken = $account->token ?? '';
-        $folder = $account->folder ?? General::codeFromString($account->username, $account);
+		// ── Cine HBO ───────────────────────────────────────────────────
 
-        // Create the folder if it doesn't exist
-        if (!Storage::disk('local')->exists($folder)) {
-            Storage::disk('local')->makeDirectory($folder);
-        }
+	public static function generateCineHboList(Account $account): void
+	{
+		$cdnToken = $account->token ?? '';
+		$folder   = $account->folder ?? General::codeFromString($account->username, $account);
 
-        $queryChannels = Channel::with('category')
-			->where([
-				['is_active', true],
-				['tvg_type', 'series'],
-			]);
+		if (!Storage::disk('local')->exists($folder)) {
+			Storage::disk('local')->makeDirectory($folder);
+		}
 
-        if ($account->parental_control) {
-            $queryChannels->where('parental_control', false);
-        }
+		$queryChannels = Channel::with('category')
+			->where([['is_active', true], ['tvg_type', 'movie']]);
 
-		$channels = $queryChannels->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
-			->orderBy('channel_categories.order', 'asc') // orden cronológico de categorías
-			->orderBy('channels.order', 'asc')           // orden cronológico de capítulos
+		if ($account->parental_control) {
+			$queryChannels->where('parental_control', false);
+		}
+
+		$channels = $queryChannels
+			->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
+			->orderBy('channels.name', 'asc')
 			->select('channels.*')
 			->get();
 
-		// Reordenar SOLO para el export:
-		// 1) Agrupar por nombre de categoría (título de serie)
-		// 2) Ordenar las categorías por nombre, ignorando ! ? ¡ ¿ y tildes
-		// 3) Mantener el orden cronológico interno de los capítulos dentro de cada categoría
-		$grouped = $channels->groupBy(function ($channel) {
-			return $channel->category->name ?? '';
-		});
-
-		$sortedCategoryNames = $grouped->keys()->sortBy(function ($name) {
-			// Quitar signos de puntuación que quieras ignorar
-			$clean = preg_replace('/[!?¡¿]/u', '', $name);
-
-			// Eliminar tildes/acentos: Á → A, É → E, etc.
+		$channels = $channels->sortBy(function ($channel) {
+			$clean = preg_replace('/[!?¡¿]/u', '', $channel->name ?? '');
 			$clean = Str::ascii($clean);
+			return mb_strtolower(trim($clean), 'UTF-8');
+		})->values();
 
-			// Normalizar a minúsculas para comparación
+		$lines = ['#EXTM3U', '#EXT-X-PLAYLIST-TYPE:VOD', ''];
+
+		foreach ($channels as $channel) {
+			if (!self::isHboUrl($channel->url_channel)) continue;
+
+			$extinf = '#EXTINF:-1';
+			if ($channel->category && !empty($channel->category->name))
+				$extinf .= ' group-title="' . $channel->category->name . '"';
+			$extinf .= ' tvg-type="movie"';
+			if (!empty($channel->logo))   $extinf .= ' tvg-logo="' . $channel->logo . '"';
+			if (!empty($channel->name))   $extinf .= ' tvg-name="' . $channel->name . '"';
+			$extinf .= ',' . $channel->name;
+			$lines[] = $extinf;
+
+			if (!empty($channel->user_agent))    $lines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+			if (!empty($channel->manifest_type)) $lines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+			if (!empty($channel->license_type))  $lines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+			if (!empty($channel->api_key)) {
+				$license = $channel->api_key;
+				if (!empty($channel->catchup_api_key)) $license .= ',' . $channel->catchup_api_key;
+				$lines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+			}
+			if ($channel->apply_token) $lines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+			if (!empty($channel->url_channel))
+				$lines[] = $channel->apply_token
+					? $channel->url_channel . '|X-TCDN-token=' . $cdnToken
+					: $channel->url_channel;
+			$lines[] = '';
+		}
+
+		Storage::disk('local')->put("{$folder}/cinehbo.m3u", implode("\n", $lines));
+	}
+
+	// ── Cine Apple TV ──────────────────────────────────────────────
+
+	public static function generateCineAppletvList(Account $account): void
+	{
+		$cdnToken = $account->token ?? '';
+		$folder   = $account->folder ?? General::codeFromString($account->username, $account);
+
+		if (!Storage::disk('local')->exists($folder)) {
+			Storage::disk('local')->makeDirectory($folder);
+		}
+
+		$queryChannels = Channel::with('category')
+			->where([['is_active', true], ['tvg_type', 'movie']]);
+
+		if ($account->parental_control) {
+			$queryChannels->where('parental_control', false);
+		}
+
+		$channels = $queryChannels
+			->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
+			->orderBy('channels.name', 'asc')
+			->select('channels.*')
+			->get();
+
+		$channels = $channels->sortBy(function ($channel) {
+			$clean = preg_replace('/[!?¡¿]/u', '', $channel->name ?? '');
+			$clean = Str::ascii($clean);
+			return mb_strtolower(trim($clean), 'UTF-8');
+		})->values();
+
+		$lines = ['#EXTM3U', '#EXT-X-PLAYLIST-TYPE:VOD', ''];
+
+		foreach ($channels as $channel) {
+			if (!self::isAppletvUrl($channel->url_channel)) continue;
+
+			$extinf = '#EXTINF:-1';
+			if ($channel->category && !empty($channel->category->name))
+				$extinf .= ' group-title="' . $channel->category->name . '"';
+			$extinf .= ' tvg-type="movie"';
+			if (!empty($channel->logo))   $extinf .= ' tvg-logo="' . $channel->logo . '"';
+			if (!empty($channel->name))   $extinf .= ' tvg-name="' . $channel->name . '"';
+			$extinf .= ',' . $channel->name;
+			$lines[] = $extinf;
+
+			if (!empty($channel->user_agent))    $lines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+			if (!empty($channel->manifest_type)) $lines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+			if (!empty($channel->license_type))  $lines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+			if (!empty($channel->api_key)) {
+				$license = $channel->api_key;
+				if (!empty($channel->catchup_api_key)) $license .= ',' . $channel->catchup_api_key;
+				$lines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+			}
+			if ($channel->apply_token) $lines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+			if (!empty($channel->url_channel))
+				$lines[] = $channel->apply_token
+					? $channel->url_channel . '|X-TCDN-token=' . $cdnToken
+					: $channel->url_channel;
+			$lines[] = '';
+		}
+
+		Storage::disk('local')->put("{$folder}/cineappletv.m3u", implode("\n", $lines));
+	}
+
+	// ── Cine Sky ───────────────────────────────────────────────────
+
+	public static function generateCineSkyList(Account $account): void
+	{
+		$cdnToken = $account->token ?? '';
+		$folder   = $account->folder ?? General::codeFromString($account->username, $account);
+
+		if (!Storage::disk('local')->exists($folder)) {
+			Storage::disk('local')->makeDirectory($folder);
+		}
+
+		$queryChannels = Channel::with('category')
+			->where([['is_active', true], ['tvg_type', 'movie']]);
+
+		if ($account->parental_control) {
+			$queryChannels->where('parental_control', false);
+		}
+
+		$channels = $queryChannels
+			->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
+			->orderBy('channels.name', 'asc')
+			->select('channels.*')
+			->get();
+
+		$channels = $channels->sortBy(function ($channel) {
+			$clean = preg_replace('/[!?¡¿]/u', '', $channel->name ?? '');
+			$clean = Str::ascii($clean);
+			return mb_strtolower(trim($clean), 'UTF-8');
+		})->values();
+
+		$lines = ['#EXTM3U', '#EXT-X-PLAYLIST-TYPE:VOD', ''];
+
+		foreach ($channels as $channel) {
+			if (!self::isSkyUrl($channel->url_channel)) continue;
+
+			$extinf = '#EXTINF:-1';
+			if ($channel->category && !empty($channel->category->name))
+				$extinf .= ' group-title="' . $channel->category->name . '"';
+			$extinf .= ' tvg-type="movie"';
+			if (!empty($channel->logo))   $extinf .= ' tvg-logo="' . $channel->logo . '"';
+			if (!empty($channel->name))   $extinf .= ' tvg-name="' . $channel->name . '"';
+			$extinf .= ',' . $channel->name;
+			$lines[] = $extinf;
+
+			if (!empty($channel->user_agent))    $lines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+			if (!empty($channel->manifest_type)) $lines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+			if (!empty($channel->license_type))  $lines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+			if (!empty($channel->api_key)) {
+				$license = $channel->api_key;
+				if (!empty($channel->catchup_api_key)) $license .= ',' . $channel->catchup_api_key;
+				$lines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+			}
+			if ($channel->apply_token) $lines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+			if (!empty($channel->url_channel))
+				$lines[] = $channel->apply_token
+					? $channel->url_channel . '|X-TCDN-token=' . $cdnToken
+					: $channel->url_channel;
+			$lines[] = '';
+		}
+
+		Storage::disk('local')->put("{$folder}/cinesky.m3u", implode("\n", $lines));
+	}
+
+	// ── Series HBO ─────────────────────────────────────────────────
+
+	public static function generateSeriesHboList(Account $account): void
+	{
+		$cdnToken = $account->token ?? '';
+		$folder   = $account->folder ?? General::codeFromString($account->username, $account);
+
+		if (!Storage::disk('local')->exists($folder)) {
+			Storage::disk('local')->makeDirectory($folder);
+		}
+
+		$queryChannels = Channel::with('category')
+			->where([['is_active', true], ['tvg_type', 'series']]);
+
+		if ($account->parental_control) {
+			$queryChannels->where('parental_control', false);
+		}
+
+		$channels = $queryChannels
+			->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
+			->orderBy('channel_categories.order', 'asc')
+			->orderBy('channels.order', 'asc')
+			->select('channels.*')
+			->get();
+
+		$grouped = $channels->groupBy(fn($ch) => $ch->category->name ?? '');
+		$sortedKeys = $grouped->keys()->sortBy(function ($name) {
+			$clean = preg_replace('/[!?¡¿]/u', '', $name);
+			$clean = Str::ascii($clean);
 			return mb_strtolower(trim($clean), 'UTF-8');
 		});
 
-		$sortedChannels = collect();
-		foreach ($sortedCategoryNames as $catName) {
-			$sortedChannels = $sortedChannels->merge($grouped[$catName]);
-		}
+		$sorted = collect();
+		foreach ($sortedKeys as $k) $sorted = $sorted->merge($grouped[$k]);
+		$channels = $sorted->values();
 
-		// Esta es la colección final, ya ordenada como quieres para el export
-		$channels = $sortedChannels->values();
-
-		// Generate list for Series
-		$seriespremiumLines = ['#EXTM3U'];
-		$seriespremiumLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
-		$seriespremiumLines[] = '';
+		$lines = ['#EXTM3U', '#EXT-X-PLAYLIST-TYPE:VOD', ''];
 
 		foreach ($channels as $channel) {
-			// Incluir los premium de la lista normal de cine
-			if (!self::ispremiumUrl($channel->url_channel)) {
-				continue;
-			}
+			if (!self::isHboUrl($channel->url_channel)) continue;
 
 			$extinf = '#EXTINF:-1';
-
-			if ($channel->category && !empty($channel->category->name)) {
-                $extinf .= ' group-title="' . $channel->category->name . '"';
-            }
+			if ($channel->category && !empty($channel->category->name))
+				$extinf .= ' group-title="' . $channel->category->name . '"';
 			$extinf .= ' tvg-type="series"';
-			if (!empty($channel->logo)) {
-                $extinf .= ' tvg-logo="' . $channel->logo . '"';
-            }
-            if (!empty($channel->name)) {
-                $extinf .= ' tvg-name="' . $channel->name . '"';
-            }
-            $extinf .= ',' . $channel->name;
-            $seriespremiumLines[] = $extinf;
+			if (!empty($channel->logo))   $extinf .= ' tvg-logo="' . $channel->logo . '"';
+			if (!empty($channel->name))   $extinf .= ' tvg-name="' . $channel->name . '"';
+			$extinf .= ',' . $channel->name;
+			$lines[] = $extinf;
 
-            if (!empty($channel->user_agent)) {
-                $seriespremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
-            }
-            if (!empty($channel->manifest_type)) {
-                $seriespremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
-            }
-            if (!empty($channel->license_type)) {
-                $seriespremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
-            }
-            if (!empty($channel->api_key)) {
-                $license = $channel->api_key;
-                if (!empty($channel->catchup_api_key)) {
-                    $license .= ',' . $channel->catchup_api_key;
-                }
-                $seriespremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
-            }
-            if ($channel->apply_token) {
-                $seriespremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
-            }
-            if (!empty($channel->url_channel) && $channel->apply_token) {
-                $seriespremiumLines[] = $channel->url_channel . '|X-TCDN-token=' . $cdnToken;
-            } else if (!empty($channel->url_channel)) {
-                $seriespremiumLines[] = $channel->url_channel;
-            }
-            $seriespremiumLines[] = '';
-        }
+			if (!empty($channel->user_agent))    $lines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+			if (!empty($channel->manifest_type)) $lines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+			if (!empty($channel->license_type))  $lines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+			if (!empty($channel->api_key)) {
+				$license = $channel->api_key;
+				if (!empty($channel->catchup_api_key)) $license .= ',' . $channel->catchup_api_key;
+				$lines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+			}
+			if ($channel->apply_token) $lines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+			if (!empty($channel->url_channel))
+				$lines[] = $channel->apply_token
+					? $channel->url_channel . '|X-TCDN-token=' . $cdnToken
+					: $channel->url_channel;
+			$lines[] = '';
+		}
 
-        $content = implode("\n", $seriespremiumLines);
+		Storage::disk('local')->put("{$folder}/serieshbo.m3u", implode("\n", $lines));
+	}
 
-        $filename = 'seriespremium.m3u';
-        Storage::disk('local')->put("{$folder}/{$filename}", $content);
-    }
+	// ── Series Apple TV ────────────────────────────────────────────
+
+	public static function generateSeriesAppletvList(Account $account): void
+	{
+		$cdnToken = $account->token ?? '';
+		$folder   = $account->folder ?? General::codeFromString($account->username, $account);
+
+		if (!Storage::disk('local')->exists($folder)) {
+			Storage::disk('local')->makeDirectory($folder);
+		}
+
+		$queryChannels = Channel::with('category')
+			->where([['is_active', true], ['tvg_type', 'series']]);
+
+		if ($account->parental_control) {
+			$queryChannels->where('parental_control', false);
+		}
+
+		$channels = $queryChannels
+			->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
+			->orderBy('channel_categories.order', 'asc')
+			->orderBy('channels.order', 'asc')
+			->select('channels.*')
+			->get();
+
+		$grouped = $channels->groupBy(fn($ch) => $ch->category->name ?? '');
+		$sortedKeys = $grouped->keys()->sortBy(function ($name) {
+			$clean = preg_replace('/[!?¡¿]/u', '', $name);
+			$clean = Str::ascii($clean);
+			return mb_strtolower(trim($clean), 'UTF-8');
+		});
+
+		$sorted = collect();
+		foreach ($sortedKeys as $k) $sorted = $sorted->merge($grouped[$k]);
+		$channels = $sorted->values();
+
+		$lines = ['#EXTM3U', '#EXT-X-PLAYLIST-TYPE:VOD', ''];
+
+		foreach ($channels as $channel) {
+			if (!self::isAppletvUrl($channel->url_channel)) continue;
+
+			$extinf = '#EXTINF:-1';
+			if ($channel->category && !empty($channel->category->name))
+				$extinf .= ' group-title="' . $channel->category->name . '"';
+			$extinf .= ' tvg-type="series"';
+			if (!empty($channel->logo))   $extinf .= ' tvg-logo="' . $channel->logo . '"';
+			if (!empty($channel->name))   $extinf .= ' tvg-name="' . $channel->name . '"';
+			$extinf .= ',' . $channel->name;
+			$lines[] = $extinf;
+
+			if (!empty($channel->user_agent))    $lines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+			if (!empty($channel->manifest_type)) $lines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+			if (!empty($channel->license_type))  $lines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+			if (!empty($channel->api_key)) {
+				$license = $channel->api_key;
+				if (!empty($channel->catchup_api_key)) $license .= ',' . $channel->catchup_api_key;
+				$lines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+			}
+			if ($channel->apply_token) $lines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+			if (!empty($channel->url_channel))
+				$lines[] = $channel->apply_token
+					? $channel->url_channel . '|X-TCDN-token=' . $cdnToken
+					: $channel->url_channel;
+			$lines[] = '';
+		}
+
+		Storage::disk('local')->put("{$folder}/seriesappletv.m3u", implode("\n", $lines));
+	}
+
+	// ── Series Sky ─────────────────────────────────────────────────
+
+	public static function generateSeriesSkyList(Account $account): void
+	{
+		$cdnToken = $account->token ?? '';
+		$folder   = $account->folder ?? General::codeFromString($account->username, $account);
+
+		if (!Storage::disk('local')->exists($folder)) {
+			Storage::disk('local')->makeDirectory($folder);
+		}
+
+		$queryChannels = Channel::with('category')
+			->where([['is_active', true], ['tvg_type', 'series']]);
+
+		if ($account->parental_control) {
+			$queryChannels->where('parental_control', false);
+		}
+
+		$channels = $queryChannels
+			->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
+			->orderBy('channel_categories.order', 'asc')
+			->orderBy('channels.order', 'asc')
+			->select('channels.*')
+			->get();
+
+		$grouped = $channels->groupBy(fn($ch) => $ch->category->name ?? '');
+		$sortedKeys = $grouped->keys()->sortBy(function ($name) {
+			$clean = preg_replace('/[!?¡¿]/u', '', $name);
+			$clean = Str::ascii($clean);
+			return mb_strtolower(trim($clean), 'UTF-8');
+		});
+
+		$sorted = collect();
+		foreach ($sortedKeys as $k) $sorted = $sorted->merge($grouped[$k]);
+		$channels = $sorted->values();
+
+		$lines = ['#EXTM3U', '#EXT-X-PLAYLIST-TYPE:VOD', ''];
+
+		foreach ($channels as $channel) {
+			if (!self::isSkyUrl($channel->url_channel)) continue;
+
+			$extinf = '#EXTINF:-1';
+			if ($channel->category && !empty($channel->category->name))
+				$extinf .= ' group-title="' . $channel->category->name . '"';
+			$extinf .= ' tvg-type="series"';
+			if (!empty($channel->logo))   $extinf .= ' tvg-logo="' . $channel->logo . '"';
+			if (!empty($channel->name))   $extinf .= ' tvg-name="' . $channel->name . '"';
+			$extinf .= ',' . $channel->name;
+			$lines[] = $extinf;
+
+			if (!empty($channel->user_agent))    $lines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
+			if (!empty($channel->manifest_type)) $lines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
+			if (!empty($channel->license_type))  $lines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
+			if (!empty($channel->api_key)) {
+				$license = $channel->api_key;
+				if (!empty($channel->catchup_api_key)) $license .= ',' . $channel->catchup_api_key;
+				$lines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
+			}
+			if ($channel->apply_token) $lines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
+			if (!empty($channel->url_channel))
+				$lines[] = $channel->apply_token
+					? $channel->url_channel . '|X-TCDN-token=' . $cdnToken
+					: $channel->url_channel;
+			$lines[] = '';
+		}
+
+		Storage::disk('local')->put("{$folder}/seriessky.m3u", implode("\n", $lines));
+	}
 	
-    /**
-     * Generate Series Ott list.
-     *
-     * @param  Account  $account
-     * @return void
-     */
-	public static function generateSeriesOttList(Account $account): void
-    {
-        $cdnToken = $account->token ?? '';
-        $folder = $account->folder ?? General::codeFromString($account->username, $account);
-
-        // Create the folder if it doesn't exist
-        if (!Storage::disk('local')->exists($folder)) {
-            Storage::disk('local')->makeDirectory($folder);
-        }
-
-        $queryChannels = Channel::with('category')
-			->where([
-				['is_active', true],
-				['tvg_type', 'series'],
-			]);
-
-        if ($account->parental_control) {
-            $queryChannels->where('parental_control', false);
-        }
-
-		$channels = $queryChannels->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
-			->orderBy('channel_categories.order', 'asc') // orden cronológico de categorías
-			->orderBy('channels.order', 'asc')           // orden cronológico de capítulos
-			->select('channels.*')
-			->get();
-
-		// Reordenar SOLO para el export:
-		// 1) Agrupar por nombre de categoría (título de serie)
-		// 2) Ordenar las categorías por nombre, ignorando ! ? ¡ ¿ y tildes
-		// 3) Mantener el orden cronológico interno de los capítulos dentro de cada categoría
-		$grouped = $channels->groupBy(function ($channel) {
-			return $channel->category->name ?? '';
-		});
-
-		$sortedCategoryNames = $grouped->keys()->sortBy(function ($name) {
-			// Quitar signos de puntuación que quieras ignorar
-			$clean = preg_replace('/[!?¡¿]/u', '', $name);
-
-			// Eliminar tildes/acentos: Á → A, É → E, etc.
-			$clean = Str::ascii($clean);
-
-			// Normalizar a minúsculas para comparación
-			return mb_strtolower(trim($clean), 'UTF-8');
-		});
-
-		$sortedChannels = collect();
-		foreach ($sortedCategoryNames as $catName) {
-			$sortedChannels = $sortedChannels->merge($grouped[$catName]);
-		}
-
-		// Esta es la colección final, ya ordenada como quieres para el export
-		$channels = $sortedChannels->values();
-
-		// Generate list for Series
-		$seriesOttLines = ['#EXTM3U'];
-		$seriesOttLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
-		$seriesOttLines[] = '';
-
-		foreach ($channels as $channel) {
-			// Excluir los premium de la lista normal de cine
-			if (self::ispremiumUrl($channel->url_channel)) {
-				continue;
-			}
-
-			$extinf = '#EXTINF:-1';
-
-			if ($channel->category && !empty($channel->category->name)) {
-                $extinf .= ' group-title="' . $channel->category->name . '"';
-            }
-			$extinf .= ' tvg-type="series"';
-			if (!empty($channel->logo)) {
-                $extinf .= ' tvg-logo="' . $channel->logo . '"';
-            }
-            if (!empty($channel->name)) {
-                $extinf .= ' tvg-name="' . $channel->name . '"';
-            }
-            $extinf .= ',' . $channel->name;
-            $seriesOttLines[] = $extinf;
-
-            if (!empty($channel->user_agent)) {
-                $seriesOttLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
-            }
-            if (!empty($channel->manifest_type)) {
-                $seriesOttLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
-            }
-            if (!empty($channel->license_type)) {
-                $seriesOttLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
-            }
-            if (!empty($channel->api_key)) {
-                $license = $channel->api_key;
-                if (!empty($channel->catchup_api_key)) {
-                    $license .= ',' . $channel->catchup_api_key;
-                }
-                $seriesOttLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
-            }
-            if ($channel->apply_token) {
-                $seriesOttLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
-            }
-            if (!empty($channel->url_channel)) {
-                $seriesOttLines[] = $channel->url_channel;
-            }
-            $seriesOttLines[] = '';
-        }
-
-        $content = implode("\n", $seriesOttLines);
-
-        $filename = 'seriesOtt.m3u';
-        Storage::disk('local')->put("{$folder}/{$filename}", $content);
-    }
-	
-    /**
-     * Generate Series Ott Premium list.
-     *
-     * @param  Account  $account
-     * @return void
-     */
-	public static function generateSeriesOttpremiumList(Account $account): void
-    {
-        $cdnToken = $account->token ?? '';
-        $folder = $account->folder ?? General::codeFromString($account->username, $account);
-
-        // Create the folder if it doesn't exist
-        if (!Storage::disk('local')->exists($folder)) {
-            Storage::disk('local')->makeDirectory($folder);
-        }
-
-        $queryChannels = Channel::with('category')
-			->where([
-				['is_active', true],
-				['tvg_type', 'series'],
-			]);
-
-        if ($account->parental_control) {
-            $queryChannels->where('parental_control', false);
-        }
-
-		$channels = $queryChannels->join('channel_categories', 'channels.category_id', '=', 'channel_categories.id')
-			->orderBy('channel_categories.order', 'asc') // orden cronológico de categorías
-			->orderBy('channels.order', 'asc')           // orden cronológico de capítulos
-			->select('channels.*')
-			->get();
-
-		// Reordenar SOLO para el export:
-		// 1) Agrupar por nombre de categoría (título de serie)
-		// 2) Ordenar las categorías por nombre, ignorando ! ? ¡ ¿ y tildes
-		// 3) Mantener el orden cronológico interno de los capítulos dentro de cada categoría
-		$grouped = $channels->groupBy(function ($channel) {
-			return $channel->category->name ?? '';
-		});
-
-		$sortedCategoryNames = $grouped->keys()->sortBy(function ($name) {
-			// Quitar signos de puntuación que quieras ignorar
-			$clean = preg_replace('/[!?¡¿]/u', '', $name);
-
-			// Eliminar tildes/acentos: Á → A, É → E, etc.
-			$clean = Str::ascii($clean);
-
-			// Normalizar a minúsculas para comparación
-			return mb_strtolower(trim($clean), 'UTF-8');
-		});
-
-		$sortedChannels = collect();
-		foreach ($sortedCategoryNames as $catName) {
-			$sortedChannels = $sortedChannels->merge($grouped[$catName]);
-		}
-
-		// Esta es la colección final, ya ordenada como quieres para el export
-		$channels = $sortedChannels->values();
-
-		// Generate list for Series
-		$seriesOttpremiumLines = ['#EXTM3U'];
-		$seriesOttpremiumLines[] = '#EXT-X-PLAYLIST-TYPE:VOD';
-		$seriesOttpremiumLines[] = '';
-
-		foreach ($channels as $channel) {
-			// Incluir los premium de la lista normal de cine
-			if (!self::ispremiumUrl($channel->url_channel)) {
-				continue;
-			}
-
-			$extinf = '#EXTINF:-1';
-
-			if ($channel->category && !empty($channel->category->name)) {
-                $extinf .= ' group-title="' . $channel->category->name . '"';
-            }
-			$extinf .= ' tvg-type="series"';
-			if (!empty($channel->logo)) {
-                $extinf .= ' tvg-logo="' . $channel->logo . '"';
-            }
-            if (!empty($channel->name)) {
-                $extinf .= ' tvg-name="' . $channel->name . '"';
-            }
-            $extinf .= ',' . $channel->name;
-            $seriesOttpremiumLines[] = $extinf;
-
-            if (!empty($channel->user_agent)) {
-                $seriesOttpremiumLines[] = '#EXTVLCOPT:http-user-agent=' . $channel->user_agent;
-            }
-            if (!empty($channel->manifest_type)) {
-                $seriesOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.manifest_type=' . $channel->manifest_type;
-            }
-            if (!empty($channel->license_type)) {
-                $seriesOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.license_type=' . $channel->license_type;
-            }
-            if (!empty($channel->api_key)) {
-                $license = $channel->api_key;
-                if (!empty($channel->catchup_api_key)) {
-                    $license .= ',' . $channel->catchup_api_key;
-                }
-                $seriesOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.license_key=' . $license;
-            }
-            if ($channel->apply_token) {
-                $seriesOttpremiumLines[] = '#KODIPROP:inputstream.adaptive.stream_headers=X-TCDN-token=' . $cdnToken;
-            }
-            if (!empty($channel->url_channel)) {
-                $seriesOttpremiumLines[] = $channel->url_channel;
-            }
-            $seriesOttpremiumLines[] = '';
-        }
-
-        $content = implode("\n", $seriesOttpremiumLines);
-
-        $filename = 'seriesOttpremium.m3u';
-        Storage::disk('local')->put("{$folder}/{$filename}", $content);
-    }
-
     /**
      * Generate Kodi list.
      *
@@ -1239,6 +980,21 @@ class Lists
 
         return Str::contains($url, $patterns);
     }
+	
+	private static function isHboUrl(?string $url): bool
+	{
+		return !empty($url) && Str::contains($url, 'prod/dash/hbomd');
+	}
+
+	private static function isAppletvUrl(?string $url): bool
+	{
+		return !empty($url) && Str::contains($url, 'prod/dash/applmd');
+	}
+
+	private static function isSkyUrl(?string $url): bool
+	{
+		return !empty($url) && Str::contains($url, 'prod/dash/skymd');
+	}
 
     /**
      * Convert JSON DRM keys to Kodi format (key_id:key)

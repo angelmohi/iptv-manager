@@ -20,7 +20,19 @@ class ListController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth')->except(['downloadTivimate', 'downloadOtt', 'downloadCine', 'downloadCinepremium', 'downloadSeries', 'downloadSeriespremium', 'downloadCineOtt', 'downloadCineOttpremium', 'downloadSeriesOtt', 'downloadSeriesOtt', 'downloadKodi']);
+        $this->middleware('auth')->except([
+    'downloadTivimate',
+    'downloadOtt',
+    'downloadCine',
+    'downloadSeries',
+    'downloadCineHbo',
+    'downloadSeriesHbo',
+    'downloadCineAppletv',
+    'downloadSeriesAppletv',
+    'downloadCineSky',
+    'downloadSeriesSky',
+    'downloadKodi',
+		]);
     }
 
     private function logDownloadAccess(?Account $account, string $listName): void
@@ -159,84 +171,6 @@ class ListController extends Controller
             echo $fileContent;
         }, $fileName, $headers);
     }
-	
-	public function downloadCinepremium(string $folder): StreamedResponse
-    {
-        $filePath = 'cinepremium.m3u';
-
-        if (!Storage::exists("{$folder}/{$filePath}")) {
-            abort(404, 'El archivo cinepremium.m3u no se encontró.');
-        }
-
-        $account = Account::where('folder', $folder)->first();
-        $this->logDownloadAccess($account, 'Tivimate');
-
-        $fileContent = Storage::get("{$folder}/{$filePath}");
-        $fileName = 'cinepremium.m3u';
-        $mimeType = 'audio/x-mpegurl';
-
-        $headers = [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        ];
-
-        return response()->streamDownload(function () use ($fileContent) {
-            echo $fileContent;
-        }, $fileName, $headers);
-    }
-	
-	 /**
-     * Download the cineOtt.m3u file.
-     */
-    public function downloadCineOtt(string $folder): StreamedResponse
-    {
-        $filePath = 'cineOtt.m3u';
-
-        if (!Storage::exists("{$folder}/{$filePath}")) {
-            abort(404, 'El archivo cineOtt.m3u no se encontró.');
-        }
-
-        $account = Account::where('folder', $folder)->first();
-        $this->logDownloadAccess($account, 'OTT');
-
-        $fileContent = Storage::get("{$folder}/{$filePath}");
-        $fileName = 'cineOtt.m3u';
-        $mimeType = 'audio/x-mpegurl';
-
-        $headers = [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        ];
-
-        return response()->streamDownload(function () use ($fileContent) {
-            echo $fileContent;
-        }, $fileName, $headers);
-    }
-	
-    public function downloadCineOttpremium(string $folder): StreamedResponse
-    {
-        $filePath = 'cineOttpremium.m3u';
-
-        if (!Storage::exists("{$folder}/{$filePath}")) {
-            abort(404, 'El archivo cineOttpremium.m3u no se encontró.');
-        }
-
-        $account = Account::where('folder', $folder)->first();
-        $this->logDownloadAccess($account, 'OTT');
-
-        $fileContent = Storage::get("{$folder}/{$filePath}");
-        $fileName = 'cineOttpremium.m3u';
-        $mimeType = 'audio/x-mpegurl';
-
-        $headers = [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        ];
-
-        return response()->streamDownload(function () use ($fileContent) {
-            echo $fileContent;
-        }, $fileName, $headers);
-    }
 
     /**
      * Download the series.m3u file.
@@ -266,83 +200,155 @@ class ListController extends Controller
         }, $fileName, $headers);
     }
 	
-	public function downloadSeriespremium(string $folder): StreamedResponse
-    {
-        $filePath = 'seriespremium.m3u';
+	public function downloadCineHbo(string $folder): StreamedResponse
+	{
+		$filePath = 'cinehbo.m3u';
 
-        if (!Storage::exists("{$folder}/{$filePath}")) {
-            abort(404, 'El archivo seriespremium.m3u no se encontró.');
-        }
+		if (!Storage::exists("{$folder}/{$filePath}")) {
+			abort(404, 'El archivo cinehbo.m3u no se encontró.');
+		}
 
-        $account = Account::where('folder', $folder)->first();
-        $this->logDownloadAccess($account, 'Tivimate');
+		$account = Account::where('folder', $folder)->first();
+		$this->logDownloadAccess($account, 'Tivimate');
 
-        $fileContent = Storage::get("{$folder}/{$filePath}");
-        $fileName = 'seriespremium.m3u';
-        $mimeType = 'audio/x-mpegurl';
+		$fileContent = Storage::get("{$folder}/{$filePath}");
+		$fileName    = 'cinehbo.m3u';
+		$mimeType    = 'audio/x-mpegurl';
 
-        $headers = [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        ];
+		$headers = [
+			'Content-Type'        => $mimeType,
+			'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+		];
 
-        return response()->streamDownload(function () use ($fileContent) {
-            echo $fileContent;
-        }, $fileName, $headers);
-    }
-	
-	    /**
-     * Download the series.m3u file.
-     */
-    public function downloadSeriesOtt(string $folder): StreamedResponse
-    {
-        $filePath = 'seriesOtt.m3u';
+		return response()->streamDownload(function () use ($fileContent) {
+			echo $fileContent;
+		}, $fileName, $headers);
+	}
 
-        if (!Storage::exists("{$folder}/{$filePath}")) {
-            abort(404, 'El archivo seriesOtt.m3u no se encontró.');
-        }
+	public function downloadSeriesHbo(string $folder): StreamedResponse
+	{
+		$filePath = 'serieshbo.m3u';
 
-        $account = Account::where('folder', $folder)->first();
-        $this->logDownloadAccess($account, 'OTT');
+		if (!Storage::exists("{$folder}/{$filePath}")) {
+			abort(404, 'El archivo serieshbo.m3u no se encontró.');
+		}
 
-        $fileContent = Storage::get("{$folder}/{$filePath}");
-        $fileName = 'seriesOtt.m3u';
-        $mimeType = 'audio/x-mpegurl';
+		$account = Account::where('folder', $folder)->first();
+		$this->logDownloadAccess($account, 'Tivimate');
 
-        $headers = [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        ];
+		$fileContent = Storage::get("{$folder}/{$filePath}");
+		$fileName    = 'serieshbo.m3u';
+		$mimeType    = 'audio/x-mpegurl';
 
-        return response()->streamDownload(function () use ($fileContent) {
-            echo $fileContent;
-        }, $fileName, $headers);
-    }
-	
-    public function downloadSeriesOttpremium(string $folder): StreamedResponse
-    {
-        $filePath = 'seriesOttpremium.m3u';
+		$headers = [
+			'Content-Type'        => $mimeType,
+			'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+		];
 
-        if (!Storage::exists("{$folder}/{$filePath}")) {
-            abort(404, 'El archivo seriesOttpremium.m3u no se encontró.');
-        }
+		return response()->streamDownload(function () use ($fileContent) {
+			echo $fileContent;
+		}, $fileName, $headers);
+	}
 
-        $account = Account::where('folder', $folder)->first();
-        $this->logDownloadAccess($account, 'OTT');
+	public function downloadCineAppletv(string $folder): StreamedResponse
+	{
+		$filePath = 'cineappletv.m3u';
 
-        $fileContent = Storage::get("{$folder}/{$filePath}");
-        $fileName = 'seriesOtt.m3u';
-        $mimeType = 'audio/x-mpegurl';
+		if (!Storage::exists("{$folder}/{$filePath}")) {
+			abort(404, 'El archivo cineappletv.m3u no se encontró.');
+		}
 
-        $headers = [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        ];
+		$account = Account::where('folder', $folder)->first();
+		$this->logDownloadAccess($account, 'Tivimate');
 
-        return response()->streamDownload(function () use ($fileContent) {
-            echo $fileContent;
-        }, $fileName, $headers);
-    }
+		$fileContent = Storage::get("{$folder}/{$filePath}");
+		$fileName    = 'cineappletv.m3u';
+		$mimeType    = 'audio/x-mpegurl';
+
+		$headers = [
+			'Content-Type'        => $mimeType,
+			'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+		];
+
+		return response()->streamDownload(function () use ($fileContent) {
+			echo $fileContent;
+		}, $fileName, $headers);
+	}
+
+	public function downloadSeriesAppletv(string $folder): StreamedResponse
+	{
+		$filePath = 'seriesappletv.m3u';
+
+		if (!Storage::exists("{$folder}/{$filePath}")) {
+			abort(404, 'El archivo seriesappletv.m3u no se encontró.');
+		}
+
+		$account = Account::where('folder', $folder)->first();
+		$this->logDownloadAccess($account, 'Tivimate');
+
+		$fileContent = Storage::get("{$folder}/{$filePath}");
+		$fileName    = 'seriesappletv.m3u';
+		$mimeType    = 'audio/x-mpegurl';
+
+		$headers = [
+			'Content-Type'        => $mimeType,
+			'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+		];
+
+		return response()->streamDownload(function () use ($fileContent) {
+			echo $fileContent;
+		}, $fileName, $headers);
+	}
+
+	public function downloadCineSky(string $folder): StreamedResponse
+	{
+		$filePath = 'cinesky.m3u';
+
+		if (!Storage::exists("{$folder}/{$filePath}")) {
+			abort(404, 'El archivo cinesky.m3u no se encontró.');
+		}
+
+		$account = Account::where('folder', $folder)->first();
+		$this->logDownloadAccess($account, 'Tivimate');
+
+		$fileContent = Storage::get("{$folder}/{$filePath}");
+		$fileName    = 'cinesky.m3u';
+		$mimeType    = 'audio/x-mpegurl';
+
+		$headers = [
+			'Content-Type'        => $mimeType,
+			'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+		];
+
+		return response()->streamDownload(function () use ($fileContent) {
+			echo $fileContent;
+		}, $fileName, $headers);
+	}
+
+	public function downloadSeriesSky(string $folder): StreamedResponse
+	{
+		$filePath = 'seriessky.m3u';
+
+		if (!Storage::exists("{$folder}/{$filePath}")) {
+			abort(404, 'El archivo seriessky.m3u no se encontró.');
+		}
+
+		$account = Account::where('folder', $folder)->first();
+		$this->logDownloadAccess($account, 'Tivimate');
+
+		$fileContent = Storage::get("{$folder}/{$filePath}");
+		$fileName    = 'seriessky.m3u';
+		$mimeType    = 'audio/x-mpegurl';
+
+		$headers = [
+			'Content-Type'        => $mimeType,
+			'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+		];
+
+		return response()->streamDownload(function () use ($fileContent) {
+			echo $fileContent;
+		}, $fileName, $headers);
+	}
 
     /**
      * Download the kodi.m3u file.

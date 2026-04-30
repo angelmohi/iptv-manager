@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Artisan;
 class ChannelController extends Controller
 {
     // null patterns = default (everything that doesn't match the others)
-    private const PLATFORM_PATTERNS = [
+    public const PLATFORM_PATTERNS = [
         'Apple TV'       => ['dash/applmd'],
         'HBO Max'        => ['dash/hbomd'],
         'SkyShowtime'    => ['dash/skymd'],
@@ -513,25 +513,25 @@ class ChannelController extends Controller
      * Generate lists scoped by channel type.
      */
     public static function generateListsByType(string $type, Account $account): void
-    {
-        match ($type) {
-            'live' => (function () use ($account) {
-                Lists::generateTivimateList($account);
-                Lists::generateOttList($account);
-                Lists::generateKodiList($account);
-            })(),
-            'movie' => (function () use ($account) {
-                Lists::generateCineList($account);
-                Lists::generateCinePremiumList($account);
-                Lists::generateCineOttList($account);
-                Lists::generateCineOttpremiumList($account);
-            })(),
-            'series' => (function () use ($account) {
-                Lists::generateSeriesList($account);
-                Lists::generateSeriesPremiumList($account);
-                Lists::generateSeriesOttList($account);
-                Lists::generateSeriesOttpremiumList($account);
-            })(),
-        };
-    }
+	{
+		match ($type) {
+			'live' => (function () use ($account) {
+				Lists::generateTivimateList($account);
+				Lists::generateOttList($account);
+				Lists::generateKodiList($account);
+			})(),
+			'movie' => (function () use ($account) {
+				Lists::generateCineList($account);
+				Lists::generateCineHboList($account);
+				Lists::generateCineAppletvList($account);
+				Lists::generateCineSkyList($account);
+			})(),
+			'series' => (function () use ($account) {
+				Lists::generateSeriesList($account);
+				Lists::generateSeriesHboList($account);
+				Lists::generateSeriesAppletvList($account);
+				Lists::generateSeriesSkyList($account);
+			})(),
+		};
+	}
 }

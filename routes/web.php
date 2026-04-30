@@ -9,6 +9,7 @@ use App\Http\Controllers\ListController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CatalogueController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,17 +51,17 @@ Route::prefix('users')->controller(UserController::class)->group(function () {
 
 Route::prefix('lists')->controller(ListController::class)->group(function () {
     Route::post('/update/{type}', 'update')->where('type', 'live|movie|series')->name('lists.update');
-    Route::get('/tivimate/{folder}', 'downloadTivimate')->name('lists.download.tivimate');
-    Route::get('/ott/{folder}', 'downloadOtt')->name('lists.download.ott');
-    Route::get('/cine/{folder}', 'downloadCine')->name('lists.download.cine');
-    Route::get('/series/{folder}', 'downloadSeries')->name('lists.download.series');
-	Route::get('/cinepremium/{folder}', 'downloadCinepremium')->name('lists.download.cinepremium');
-    Route::get('/seriespremium/{folder}', 'downloadSeriespremium')->name('lists.download.seriespremium');
-    Route::get('/cineOtt/{folder}', 'downloadCineOtt')->name('lists.download.cineott');
-    Route::get('/seriesOtt/{folder}', 'downloadSeriesOtt')->name('lists.download.seriesott');
-	Route::get('/cineOttpremium/{folder}', 'downloadCineOttpremium')->name('lists.download.cineottpremium');
-    Route::get('/seriesOttpremium/{folder}', 'downloadSeriesOttpremium')->name('lists.download.seriesottpremium');
-    Route::get('/kodi/{folder}', 'downloadKodi')->name('lists.download.kodi');
+    Route::get('/tivimate/{folder}',     'downloadTivimate')->name('lists.download.tivimate');
+    Route::get('/ott/{folder}',          'downloadOtt')->name('lists.download.ott');
+    Route::get('/cine/{folder}',         'downloadCine')->name('lists.download.cine');
+    Route::get('/series/{folder}',       'downloadSeries')->name('lists.download.series');
+    Route::get('/hbocine/{folder}',      'downloadCineHbo')->name('lists.download.cinehbo');
+    Route::get('/hboseries/{folder}',    'downloadSeriesHbo')->name('lists.download.serieshbo');
+    Route::get('/appletvcine/{folder}',  'downloadCineAppletv')->name('lists.download.cineappletv');
+    Route::get('/appletvseries/{folder}','downloadSeriesAppletv')->name('lists.download.seriesappletv');
+    Route::get('/skycine/{folder}',      'downloadCineSky')->name('lists.download.cinesky');
+    Route::get('/skyseries/{folder}',    'downloadSeriesSky')->name('lists.download.seriessky');
+    Route::get('/kodi/{folder}',         'downloadKodi')->name('lists.download.kodi');
 });
 
 Route::prefix('{type}')->where(['type' => 'live|movie|series'])->group(function () {
@@ -91,3 +92,9 @@ Route::get('/logs', [ChannelHistoryController::class, 'index'])->name('logs.inde
 Route::get('/difusion-epg', [\App\Http\Controllers\DifusionEpgController::class, 'index'])->name('difusion.epg');
 Route::get('/difusion-epg/data', [\App\Http\Controllers\DifusionEpgController::class, 'data'])->name('difusion.epg.data');
 Route::post('/difusion-epg/run', [\App\Http\Controllers\DifusionEpgController::class, 'run'])->name('difusion.epg.run');
+
+// ── Catálogo público ──────────────────────────────────────────
+Route::get('/catalogo', [CatalogueController::class, 'index'])->name('catalogue.index');
+Route::get('/catalogo/data/{type}', [CatalogueController::class, 'data'])
+    ->where('type', 'live|movie|series')
+    ->name('catalogue.data');
