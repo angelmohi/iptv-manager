@@ -28,16 +28,9 @@ class Kernel extends ConsoleKernel
                 mt_srand(); // Restaurar aleatoriedad normal
 
                 $morningTime = sprintf('03:%02d', $minuteOffset);
-                $afternoonTime = sprintf('15:%02d', $minuteOffset);
 
                 $schedule->command('get-cdn-token', [$account->id])
                     ->dailyAt($morningTime)
-                    ->timezone('Europe/Madrid')
-                    ->withoutOverlapping()
-                    ->appendOutputTo(storage_path('logs/cdn-token.log'));
-
-                $schedule->command('get-cdn-token', [$account->id])
-                    ->dailyAt($afternoonTime)
                     ->timezone('Europe/Madrid')
                     ->withoutOverlapping()
                     ->appendOutputTo(storage_path('logs/cdn-token.log'));
