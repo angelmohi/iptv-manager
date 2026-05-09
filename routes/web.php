@@ -93,8 +93,20 @@ Route::get('/difusion-epg', [\App\Http\Controllers\DifusionEpgController::class,
 Route::get('/difusion-epg/data', [\App\Http\Controllers\DifusionEpgController::class, 'data'])->name('difusion.epg.data');
 Route::post('/difusion-epg/run', [\App\Http\Controllers\DifusionEpgController::class, 'run'])->name('difusion.epg.run');
 
+// ── Debug temporal (eliminar cuando ya no sea necesario) ──────
+Route::get('/catalogo/debug-series', [CatalogueController::class, 'debugSeries']);
+
 // ── Catálogo público ──────────────────────────────────────────
+Route::post('/catalogo/enrich/{type}', [CatalogueController::class, 'enrich'])
+    ->where('type', 'movie|series|all')
+    ->name('catalogue.enrich');
 Route::get('/catalogo', [CatalogueController::class, 'index'])->name('catalogue.index');
-Route::get('/catalogo/data/{type}', [CatalogueController::class, 'data'])
+Route::get('/catalogo/grid/{type}', [CatalogueController::class, 'grid'])
     ->where('type', 'live|movie|series')
-    ->name('catalogue.data');
+    ->name('catalogue.grid');
+Route::get('/catalogo/item/{channel}', [CatalogueController::class, 'show'])
+    ->name('catalogue.show');
+Route::get('/catalogo/stats', [CatalogueController::class, 'stats'])->name('catalogue.stats');
+Route::get('/catalogo/facets/{type}', [CatalogueController::class, 'facets'])
+    ->where('type', 'movie|series|live')
+    ->name('catalogue.facets');

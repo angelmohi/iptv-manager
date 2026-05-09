@@ -44,4 +44,22 @@ return [
     'ipinfo' => [
         'token' => env('IPINFO_TOKEN'),
     ],
+
+    'tmdb' => [
+        'key'       => env('TMDB_API_KEY'),
+        'base_url'  => env('TMDB_BASE_URL', 'https://api.themoviedb.org/3'),
+        'image_url' => env('TMDB_IMAGE_URL', 'https://image.tmdb.org/t/p'),
+        'language'  => env('TMDB_LANGUAGE', 'es-ES'),
+        'delay_ms'  => (int) env('TMDB_DELAY_MS', 250),
+    ],
+
+    'omdb' => [
+        'key'      => env('OMDB_API_KEY'),
+        'base_url' => env('OMDB_BASE_URL', 'https://www.omdbapi.com/'),
+    ],
+
+    'tvmaze' => [
+        'base_url' => env('TVMAZE_BASE_URL', 'https://api.tvmaze.com'),
+    ],
+
 ];

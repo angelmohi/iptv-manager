@@ -28,16 +28,9 @@ class Kernel extends ConsoleKernel
                 mt_srand(); // Restaurar aleatoriedad normal
 
                 $morningTime = sprintf('03:%02d', $minuteOffset);
-                $afternoonTime = sprintf('15:%02d', $minuteOffset);
 
                 $schedule->command('get-cdn-token', [$account->id])
                     ->dailyAt($morningTime)
-                    ->timezone('Europe/Madrid')
-                    ->withoutOverlapping()
-                    ->appendOutputTo(storage_path('logs/cdn-token.log'));
-
-                $schedule->command('get-cdn-token', [$account->id])
-                    ->dailyAt($afternoonTime)
                     ->timezone('Europe/Madrid')
                     ->withoutOverlapping()
                     ->appendOutputTo(storage_path('logs/cdn-token.log'));
@@ -53,6 +46,13 @@ class Kernel extends ConsoleKernel
             ->timezone('Europe/Madrid')
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/export-difusion.log'));
+
+        // Enriquecer catálogo con metadatos (poster, rating, sinopsis) para nuevas películas y series
+        $schedule->command('catalogue:enrich', ['--type' => 'all'])
+            ->dailyAt('02:00')
+            ->timezone('Europe/Madrid')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/catalogue-enrich.log'));
 
         // Ejecutar ExtractPssh una vez al día a las 5:00 de la mañana
         $schedule->command('channels:update-pssh')
