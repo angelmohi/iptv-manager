@@ -47,6 +47,13 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/export-difusion.log'));
 
+        // Enriquecer catálogo con metadatos (poster, rating, sinopsis) para nuevas películas y series
+        $schedule->command('catalogue:enrich', ['--type' => 'all'])
+            ->dailyAt('02:00')
+            ->timezone('Europe/Madrid')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/catalogue-enrich.log'));
+
         // Ejecutar ExtractPssh una vez al día a las 5:00 de la mañana
         $schedule->command('channels:update-pssh')
             ->dailyAt('05:00')

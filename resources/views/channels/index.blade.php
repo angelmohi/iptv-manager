@@ -21,6 +21,11 @@
                         <button type="button" class="btn btn-outline-primary ms-3" data-bs-toggle="modal" data-bs-target="#modalCargarLista">
                             <i class="fas fa-upload mr-2"></i> Cargar lista
                         </button>
+                        @if($type !== 'live')
+                        <button type="button" id="btnEnrichMetadata" class="btn btn-outline-secondary ms-3">
+                            <i class="fas fa-database mr-2"></i> Actualizar metadatos
+                        </button>
+                        @endif
                     </form>
                 </div>
                 <div id="toolbar-categorias" class="d-none">
@@ -318,6 +323,33 @@ $(document).ready(function() {
         });
     });
 });
+
+@if($type !== 'live')
+document.getElementById('btnEnrichMetadata')?.addEventListener('click', function () {
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Actualizando...';
+
+    fetch('{{ route('catalogue.enrich', $type) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+        },
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-database mr-2"></i> Actualizar metadatos';
+        alert(data.success ? 'Metadatos actualizados correctamente.' : 'Error al actualizar metadatos.');
+    })
+    .catch(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-database mr-2"></i> Actualizar metadatos';
+        alert('Error de conexión al actualizar metadatos.');
+    });
+});
+@endif
 
 document.addEventListener('DOMContentLoaded', () => {
     const catList = document.getElementById('categories-list');
