@@ -37,7 +37,7 @@ class HomeController extends Controller
 
         $byUserAgent = DownloadLog::select(
                 DB::raw("SUBSTRING_INDEX(user_agent, '/', 1) AS user_agent"),
-                DB::raw('COUNT(DISTINCT ip) AS total')
+                DB::raw('COUNT(DISTINCT ip, DATE(created_at)) AS total')
             )
             ->where('country', 'ES')
             ->where('created_at', '>=', now()->subDays(6)->startOfDay())
@@ -49,7 +49,7 @@ class HomeController extends Controller
 
         $byList = DownloadLog::select(
                 'list',
-                DB::raw('COUNT(*) AS total')
+                DB::raw('COUNT(DISTINCT ip, DATE(created_at)) AS total')
             )
             ->where('country', 'ES')
             ->where('created_at', '>=', now()->subDays(6)->startOfDay())
