@@ -156,7 +156,7 @@ class ListController extends Controller
         }
 
         $account = Account::where('folder', $folder)->first();
-        $this->logDownloadAccess($account, 'Tivimate');
+        $this->logDownloadAccess($account, 'Cine');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'cine.m3u';
@@ -184,7 +184,7 @@ class ListController extends Controller
         }
 
         $account = Account::where('folder', $folder)->first();
-        $this->logDownloadAccess($account, 'Tivimate');
+        $this->logDownloadAccess($account, 'Series');
 
         $fileContent = Storage::get("{$folder}/{$filePath}");
         $fileName = 'series.m3u';
@@ -209,7 +209,7 @@ class ListController extends Controller
 		}
 
 		$account = Account::where('folder', $folder)->first();
-		$this->logDownloadAccess($account, 'Tivimate');
+		$this->logDownloadAccess($account, 'Cine HBO');
 
 		$fileContent = Storage::get("{$folder}/{$filePath}");
 		$fileName    = 'cinehbo.m3u';
@@ -234,7 +234,7 @@ class ListController extends Controller
 		}
 
 		$account = Account::where('folder', $folder)->first();
-		$this->logDownloadAccess($account, 'Tivimate');
+		$this->logDownloadAccess($account, 'Series HBO');
 
 		$fileContent = Storage::get("{$folder}/{$filePath}");
 		$fileName    = 'serieshbo.m3u';
@@ -259,7 +259,7 @@ class ListController extends Controller
 		}
 
 		$account = Account::where('folder', $folder)->first();
-		$this->logDownloadAccess($account, 'Tivimate');
+		$this->logDownloadAccess($account, 'Cine Apple TV');
 
 		$fileContent = Storage::get("{$folder}/{$filePath}");
 		$fileName    = 'cineappletv.m3u';
@@ -284,7 +284,7 @@ class ListController extends Controller
 		}
 
 		$account = Account::where('folder', $folder)->first();
-		$this->logDownloadAccess($account, 'Tivimate');
+		$this->logDownloadAccess($account, 'Series Apple TV');
 
 		$fileContent = Storage::get("{$folder}/{$filePath}");
 		$fileName    = 'seriesappletv.m3u';
@@ -309,7 +309,7 @@ class ListController extends Controller
 		}
 
 		$account = Account::where('folder', $folder)->first();
-		$this->logDownloadAccess($account, 'Tivimate');
+		$this->logDownloadAccess($account, 'Cine Sky Showtime');
 
 		$fileContent = Storage::get("{$folder}/{$filePath}");
 		$fileName    = 'cinesky.m3u';
@@ -334,7 +334,7 @@ class ListController extends Controller
 		}
 
 		$account = Account::where('folder', $folder)->first();
-		$this->logDownloadAccess($account, 'Tivimate');
+		$this->logDownloadAccess($account, 'Series Sky Showtime');
 
 		$fileContent = Storage::get("{$folder}/{$filePath}");
 		$fileName    = 'seriessky.m3u';

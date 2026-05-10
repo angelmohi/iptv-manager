@@ -24,6 +24,28 @@
         <div class="col-12 col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header">
+                    <h5 class="mb-0">Accesos totales por lista (últimos 7 días)</h5>
+                </div>
+                <div class="card-body d-flex justify-content-center">
+                    <canvas id="listChart" style="max-height:300px; width:100%;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">User Agents (últimos 7 días)</h5>
+                </div>
+                <div class="card-body d-flex justify-content-center">
+                    <canvas id="userAgentChart" style="max-height:300px; width:100%;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
                     <h5 class="mb-0">Accesos únicos (últimos 7 días)</h5>
                 </div>
                 <div class="card-body">
@@ -31,19 +53,8 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-12 col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="mb-0">Listas</h5>
-                </div>
-                <div class="card-body d-flex justify-content-center">
-                    <canvas id="listChart" style="max-height:300px; width:100%;"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-12 col-md-12 mb-4">
             <div class="card h-100">
                 <div class="card-header">
                     <h5 class="mb-0">Accesos únicos por lista (últimos 7 días)</h5>
@@ -123,7 +134,8 @@
 <script>
   const dailyDates    = @json($last7->pluck('date')->toArray());
   const dailyTotals   = @json($last7->pluck('total')->toArray());
-  const listDataRaw   = @json($byList->map(fn($d)=>[$d->list, $d->total]));
+  const userAgentDataRaw = @json($byUserAgent->map(fn($d)=>[$d->user_agent, $d->total]));
+  const listDataRaw      = @json($byList->map(fn($d)=>[$d->list, $d->total]));
   const accessDates    = @json($accessDates);
   const accessDatasets = @json($accessDatasets);
 
@@ -159,6 +171,30 @@
         maintainAspectRatio: false,
         scales: { y: { beginAtZero: true } },
         plugins: { legend: { display: false } }
+      }
+    }
+  );
+
+  // — User Agent Chart —
+  const userAgentLabels = userAgentDataRaw.map(d => d[0]);
+  const userAgentCounts = userAgentDataRaw.map(d => d[1]);
+  new Chart(
+    document.getElementById('userAgentChart'),
+    {
+      type: 'pie',
+      data: {
+        labels: userAgentLabels,
+        datasets: [{
+          data: userAgentCounts,
+          backgroundColor: userAgentLabels.map(() => randomVibrant(0.8)),
+          borderColor: '#fff',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
       }
     }
   );

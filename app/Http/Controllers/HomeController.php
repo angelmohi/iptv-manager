@@ -35,11 +35,26 @@ class HomeController extends Controller
             ->orderBy('date')
             ->get();
 
-        $byList = DownloadLog::select(
-                'list',
+        $byUserAgent = DownloadLog::select(
+                DB::raw("SUBSTRING_INDEX(user_agent, '/', 1) AS user_agent"),
                 DB::raw('COUNT(DISTINCT ip) AS total')
             )
             ->where('country', 'ES')
+            ->where('created_at', '>=', now()->subDays(6)->startOfDay())
+            ->whereNotNull('user_agent')
+            ->where('user_agent', '!=', '')
+            ->groupBy(DB::raw("SUBSTRING_INDEX(user_agent, '/', 1)"))
+            ->orderByDesc('total')
+            ->get();
+
+        $byList = DownloadLog::select(
+                'list',
+                DB::raw('COUNT(*) AS total')
+            )
+            ->where('country', 'ES')
+            ->where('created_at', '>=', now()->subDays(6)->startOfDay())
+            ->whereNotNull('list')
+            ->where('list', '!=', '')
             ->groupBy('list')
             ->orderByDesc('total')
             ->get();
@@ -96,6 +111,7 @@ class HomeController extends Controller
 
         return view('home', [
             'last7'            => $last7,
+            'byUserAgent'      => $byUserAgent,
             'byList'           => $byList,
             'accessDates'      => $accessDates->toArray(),
             'accessDatasets'   => $accessDatasets,

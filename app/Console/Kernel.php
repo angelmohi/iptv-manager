@@ -27,10 +27,24 @@ class Kernel extends ConsoleKernel
                 $minuteOffset = mt_rand(0, 59);
                 mt_srand(); // Restaurar aleatoriedad normal
 
-                $morningTime = sprintf('03:%02d', $minuteOffset);
+                $morningTime = sprintf('04:%02d', $minuteOffset);
+                $afternoonTime = sprintf('12:%02d', $minuteOffset);
+                $nightTime = sprintf('20:%02d', $minuteOffset);
 
                 $schedule->command('get-cdn-token', [$account->id])
                     ->dailyAt($morningTime)
+                    ->timezone('Europe/Madrid')
+                    ->withoutOverlapping()
+                    ->appendOutputTo(storage_path('logs/cdn-token.log'));
+
+                $schedule->command('get-cdn-token', [$account->id])
+                    ->dailyAt($afternoonTime)
+                    ->timezone('Europe/Madrid')
+                    ->withoutOverlapping()
+                    ->appendOutputTo(storage_path('logs/cdn-token.log'));
+
+                $schedule->command('get-cdn-token', [$account->id])
+                    ->dailyAt($nightTime)
                     ->timezone('Europe/Madrid')
                     ->withoutOverlapping()
                     ->appendOutputTo(storage_path('logs/cdn-token.log'));
@@ -54,9 +68,9 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/catalogue-enrich.log'));
 
-        // Ejecutar ExtractPssh una vez al día a las 5:00 de la mañana
+        // Ejecutar ExtractPssh una vez al día a las 5:30 de la mañana
         $schedule->command('channels:update-pssh')
-            ->dailyAt('05:00')
+            ->dailyAt('05:30')
             ->timezone('Europe/Madrid')
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/extract-pssh.log'));
