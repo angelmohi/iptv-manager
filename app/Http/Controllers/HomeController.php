@@ -29,7 +29,6 @@ class HomeController extends Controller
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('COUNT(DISTINCT ip) as total')
             )
-            ->where('country', 'ES')
             ->where('created_at', '>=', now()->subDays(6)->startOfDay())
             ->groupBy('date')
             ->orderBy('date')
@@ -39,7 +38,6 @@ class HomeController extends Controller
                 DB::raw("SUBSTRING_INDEX(user_agent, '/', 1) AS user_agent"),
                 DB::raw('COUNT(DISTINCT ip, DATE(created_at)) AS total')
             )
-            ->where('country', 'ES')
             ->where('created_at', '>=', now()->subDays(6)->startOfDay())
             ->whereNotNull('user_agent')
             ->where('user_agent', '!=', '')
@@ -51,7 +49,6 @@ class HomeController extends Controller
                 'list',
                 DB::raw('COUNT(DISTINCT ip, DATE(created_at)) AS total')
             )
-            ->where('country', 'ES')
             ->where('created_at', '>=', now()->subDays(6)->startOfDay())
             ->whereNotNull('list')
             ->where('list', '!=', '')
@@ -72,7 +69,6 @@ class HomeController extends Controller
                 'account_id',
                 DB::raw('COUNT(DISTINCT ip) as unique_count')
             )
-            ->where('country', 'ES')
             ->whereBetween('created_at', [$start, $end])
             ->groupBy('date', 'account_id')
             ->orderBy('date')

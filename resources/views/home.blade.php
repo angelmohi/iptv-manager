@@ -24,7 +24,7 @@
         <div class="col-12 col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">Accesos únicos diarios por lista (últimos 7 días)</h5>
+                    <h5 class="mb-0">Accesos únicos por lista (últimos 7 días)</h5>
                 </div>
                 <div class="card-body d-flex justify-content-center">
                     <canvas id="listChart" style="max-height:300px; width:100%;"></canvas>
@@ -57,7 +57,7 @@
         <div class="col-12 col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">Accesos únicos por lista (últimos 7 días)</h5>
+                    <h5 class="mb-0">Accesos únicos por cuenta (últimos 7 días)</h5>
                 </div>
                 <div class="card-body" style="height: 300px;">
                     <canvas id="accessChart" style="max-height:300px;"></canvas>
