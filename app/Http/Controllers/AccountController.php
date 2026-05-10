@@ -130,12 +130,25 @@ class AccountController extends Controller
     /**
      * Return paginated download logs for a given account (AJAX).
      */
-    public function logs(Account $account): JsonResponse
+    public function logs(Account $account, Request $request): JsonResponse
     {
+        $search = trim((string) $request->query('search', ''));
+
         $logs = $account->downloadLogs()
-            ->select('id', 'ip', 'list', 'city', 'region', 'created_at')
+            ->select('id', 'ip', 'list', 'city', 'region', 'user_agent', 'created_at')
+            ->when($search !== '', function ($query) use ($search) {
+                $like = '%' . $search . '%';
+                $query->where(function ($q) use ($like) {
+                    $q->where('ip', 'like', $like)
+                      ->orWhere('list', 'like', $like)
+                      ->orWhere('city', 'like', $like)
+                      ->orWhere('region', 'like', $like)
+                      ->orWhere('user_agent', 'like', $like);
+                });
+            })
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         $logs->getCollection()->transform(function ($row) {
             $row->created_at_formatted = $row->created_at->format('d/m/Y H:i');

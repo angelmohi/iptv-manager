@@ -95,6 +95,21 @@
                             <div class="tab-pane fade {{ $i === 0 ? 'show active' : '' }}"
                                  id="pane-{{ $account->id }}" role="tabpanel"
                                  aria-labelledby="tab-{{ $account->id }}">
+                                <div class="d-flex justify-content-end mb-2">
+                                    <div class="input-group input-group-sm" style="max-width: 280px;">
+                                        <span class="input-group-text">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                                            </svg>
+                                        </span>
+                                        <input type="search"
+                                               class="form-control logs-search"
+                                               id="search-{{ $account->id }}"
+                                               data-account-id="{{ $account->id }}"
+                                               data-logs-url="{{ route('accounts.logs', $account->id) }}"
+                                               placeholder="Buscar en IP, lista, ciudad, región, user agent...">
+                                    </div>
+                                </div>
                                 <div class="table-responsive position-relative">
                                   <div id="spinner-{{ $account->id }}" class="spinner-overlay d-none">
                                     <div class="spinner-border text-primary" role="status">
@@ -108,6 +123,7 @@
                                                 <th>Lista</th>
                                                 <th>Ciudad</th>
                                                 <th>Región</th>
+                                                <th>User Agent</th>
                                                 <th>Fecha</th>
                                             </tr>
                                         </thead>
@@ -266,7 +282,7 @@
   // — Logs table with AJAX pagination —
   const logsState = {};
 
-  function loadLogs(accountId, url, page) {
+  function loadLogs(accountId, url, page, search) {
     const tbody      = document.getElementById('tbody-' + accountId);
     const pagination = document.getElementById('pagination-' + accountId);
     const spinner    = document.getElementById('spinner-' + accountId);
@@ -275,7 +291,11 @@
     if (table) table.classList.add('opacity-50');
     pagination.innerHTML = '';
 
-    fetch(url + '?page=' + page, {
+    const currentSearch = (search ?? logsState[accountId]?.search ?? '').trim();
+    const params = new URLSearchParams({ page: String(page) });
+    if (currentSearch !== '') params.set('search', currentSearch);
+
+    fetch(url + '?' + params.toString(), {
       headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
     })
     .then(r => r.json())
@@ -283,7 +303,11 @@
       if (!data.data || data.data.length === 0) {
         if (spinner) spinner.classList.add('d-none');
         if (table) table.classList.remove('opacity-50');
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No hay registros para esta cuenta.</td></tr>';
+        const emptyMsg = currentSearch !== ''
+          ? 'No hay resultados para la búsqueda.'
+          : 'No hay registros para esta cuenta.';
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">${emptyMsg}</td></tr>`;
+        logsState[accountId] = { url, page: 1, search: currentSearch };
         return;
       }
 
@@ -293,6 +317,7 @@
           <td>${row.list ?? ''}</td>
           <td>${row.city ?? ''}</td>
           <td>${row.region ?? ''}</td>
+          <td>${(row.user_agent ?? '').split('/')[0]}</td>
           <td>${row.created_at_formatted ?? ''}</td>
         </tr>
       `).join('');
@@ -323,12 +348,12 @@
       pagination.innerHTML = info + buttons;
       if (spinner) spinner.classList.add('d-none');
       if (table) table.classList.remove('opacity-50');
-      logsState[accountId] = { url, page: currentPage };
+      logsState[accountId] = { url, page: currentPage, search: currentSearch };
     })
     .catch(() => {
       if (spinner) spinner.classList.add('d-none');
       if (table) table.classList.remove('opacity-50');
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3">Error al cargar los datos.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">Error al cargar los datos.</td></tr>';
     });
   }
 
@@ -336,7 +361,7 @@
   const firstTab = document.querySelector('#accountTabs .nav-link.active');
   if (firstTab) {
     const accountId = firstTab.getAttribute('data-bs-target').replace('#pane-', '');
-    loadLogs(accountId, firstTab.dataset.logsUrl, 1);
+    loadLogs(accountId, firstTab.dataset.logsUrl, 1, '');
   }
 
   // Load data when switching tabs (only if not already loaded for current page)
@@ -345,10 +370,23 @@
       const accountId = btn.getAttribute('data-bs-target').replace('#pane-', '');
       const url       = btn.dataset.logsUrl;
       const state     = logsState[accountId];
-      
+
       if (!state) {
-        loadLogs(accountId, url, 1);
+        loadLogs(accountId, url, 1, '');
       }
+    });
+  });
+
+  // Per-tab search input (debounced)
+  const searchTimers = {};
+  document.querySelectorAll('.logs-search').forEach(input => {
+    input.addEventListener('input', function () {
+      const accountId = input.dataset.accountId;
+      const url       = input.dataset.logsUrl;
+      clearTimeout(searchTimers[accountId]);
+      searchTimers[accountId] = setTimeout(() => {
+        loadLogs(accountId, url, 1, input.value);
+      }, 300);
     });
   });
 </script>
